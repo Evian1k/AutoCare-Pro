@@ -1,145 +1,99 @@
-import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
-// Ensure upload directory exists
-const uploadDir = process.env.UPLOAD_DIR || 'uploads';
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Configure storage
+// Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Create subdirectories based on file type
-    let subDir = 'documents';
-    
-    if (file.fieldname === 'truckDocuments') {
-      subDir = 'trucks';
-    } else if (file.fieldname === 'userDocuments') {
-      subDir = 'users';
-    } else if (file.fieldname === 'bookingDocuments') {
-      subDir = 'bookings';
-    } else if (file.fieldname === 'branchDocuments') {
-      subDir = 'branches';
+    const uploadDir = 'uploads/';
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
     }
-    
-    const fullPath = path.join(uploadDir, subDir);
-    if (!fs.existsSync(fullPath)) {
-      fs.mkdirSync(fullPath, { recursive: true });
-    }
-    
-    cb(null, fullPath);
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    // Generate unique filename
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const fileName = file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname);
-    cb(null, fileName);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
   }
 });
 
-// File filter for allowed types
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = [
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.ms-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'image/jpeg',
-    'image/png',
-    'image/gif',
-    'text/plain'
-  ];
-  
-  if (allowedTypes.includes(file.mimetype)) {
+  // Accept images and documents
+  if (file.mimetype.startsWith('image/') || 
+      file.mimetype.startsWith('application/pdf') ||
+      file.mimetype.startsWith('application/msword') ||
+      file.mimetype.startsWith('application/vnd.openxmlformats-officedocument')) {
     cb(null, true);
   } else {
-    cb(new Error('Invalid file type. Only PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, and TXT files are allowed.'), false);
+    cb(new Error('Invalid file type'), false);
   }
 };
 
-// Configure multer
 const upload = multer({
   storage: storage,
+  fileFilter: fileFilter,
   limits: {
-    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 10 * 1024 * 1024, // 10MB default
-    files: 10 // Maximum 10 files per upload
-  },
-  fileFilter: fileFilter
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
 });
 
-// Middleware functions
-export const uploadSingle = (fieldName) => upload.single(fieldName);
-export const uploadMultiple = (fieldName, maxCount = 5) => upload.array(fieldName, maxCount);
-export const uploadFields = (fields) => upload.fields(fields);
+// Middleware for single file upload
+const uploadSingle = (fieldName) => {
+  return upload.single(fieldName);
+};
 
-// Document-specific upload middleware
-export const uploadTruckDocuments = upload.array('truckDocuments', 10);
-export const uploadBookingDocuments = upload.array('bookingDocuments', 5);
-export const uploadBranchDocuments = upload.array('branchDocuments', 10);
-export const uploadUserDocuments = upload.array('userDocuments', 3);
+// Middleware for multiple files upload
+const uploadMultiple = (fieldName, maxCount = 5) => {
+  return upload.array(fieldName, maxCount);
+};
 
-// Error handling middleware for multer
-export const handleUploadError = (error, req, res, next) => {
+// Error handling middleware
+const handleUploadError = (error, req, res, next) => {
   if (error instanceof multer.MulterError) {
     if (error.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({
         success: false,
-        message: 'File too large. Maximum size is 10MB.'
+        message: 'File too large. Maximum size is 5MB.'
       });
     }
     if (error.code === 'LIMIT_FILE_COUNT') {
       return res.status(400).json({
         success: false,
-        message: 'Too many files. Maximum is 10 files per upload.'
-      });
-    }
-    if (error.code === 'LIMIT_UNEXPECTED_FILE') {
-      return res.status(400).json({
-        success: false,
-        message: 'Unexpected field name in file upload.'
+        message: 'Too many files. Maximum is 5 files.'
       });
     }
   }
   
-  if (error.message.includes('Invalid file type')) {
+  if (error.message === 'Invalid file type') {
     return res.status(400).json({
       success: false,
-      message: error.message
+      message: 'Invalid file type. Only images and documents are allowed.'
     });
   }
   
   next(error);
 };
 
-// Helper function to process uploaded files
-export const processUploadedFiles = (files) => {
-  if (!files || files.length === 0) return [];
+// Process uploaded files
+const processUploadedFiles = (files) => {
+  if (!files) return [];
   
-  return files.map(file => ({
-    name: file.originalname,
+  const uploadedFiles = Array.isArray(files) ? files : [files];
+  
+  return uploadedFiles.map(file => ({
+    originalName: file.originalname,
     filename: file.filename,
-    type: file.mimetype,
+    path: file.path,
     size: file.size,
-    url: `/uploads/${path.relative(uploadDir, file.path)}`,
-    uploadDate: new Date()
+    mimetype: file.mimetype,
+    url: `/uploads/${file.filename}`
   }));
 };
 
-// Helper function to delete files
-export const deleteFile = (filePath) => {
-  try {
-    const fullPath = path.join(process.cwd(), 'uploads', filePath);
-    if (fs.existsSync(fullPath)) {
-      fs.unlinkSync(fullPath);
-      return true;
-    }
-  } catch (error) {
-    console.error('Error deleting file:', error);
-  }
-  return false;
+module.exports = {
+  upload,
+  uploadSingle,
+  uploadMultiple,
+  handleUploadError,
+  processUploadedFiles
 };
-
-export default upload;

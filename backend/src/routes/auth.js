@@ -395,4 +395,4 @@ router.get('/verify', async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;
