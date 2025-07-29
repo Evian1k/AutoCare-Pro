@@ -1,33 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
-import {
-  Elements,
-  CardElement,
-  useStripe,
-  useElements
-} from '@stripe/react-stripe-js';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Alert, AlertDescription } from './ui/alert';
-import { Loader2, CreditCard, DollarSign } from 'lucide-react';
+import { Loader2, CreditCard, DollarSign, CreditCardIcon, CheckCircle } from 'lucide-react';
+import { apiService } from '../services/api';
 
-// Initialize Stripe
-let stripePromise;
-
-const PaymentFormContent = ({ onPaymentSuccess, onPaymentError }) => {
-  const stripe = useStripe();
-  const elements = useElements();
+const PaymentForm = ({ onPaymentSuccess, onPaymentError }) => {
   const [amount, setAmount] = useState('');
-  const [currency, setCurrency] = useState('usd');
+  const [currency, setCurrency] = useState('USD');
   const [description, setDescription] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('mock'); // 'paypal', 'mock'
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
-  const [clientSecret, setClientSecret] = useState('');
+  const [success, setSuccess] = useState('');
+  const [paypalConfig, setPaypalConfig] = useState(null);
 
-  const handleCreatePaymentIntent = async () => {
+  useEffect(() => {
+    fetchPaymentConfig();
+  }, []);
+
+  const fetchPaymentConfig = async () => {
+    try {
+      const response = await apiService.request('/payments/config');
+      if (response.success) {
+        setPaypalConfig(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to load payment config:', error);
+    }
+  };
+
+  const handleMockPayment = async () => {
     if (!amount || amount <= 0) {
       setError('Please enter a valid amount');
       return;
@@ -35,15 +41,11 @@ const PaymentFormContent = ({ onPaymentSuccess, onPaymentError }) => {
 
     setIsProcessing(true);
     setError('');
+    setSuccess('');
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/v1/payments/create-payment-intent', {
+      const response = await apiService.request('/payments/mock-payment', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
         body: JSON.stringify({
           amount: parseFloat(amount),
           currency,
@@ -51,15 +53,58 @@ const PaymentFormContent = ({ onPaymentSuccess, onPaymentError }) => {
         })
       });
 
-      const data = await response.json();
-
-      if (data.success) {
-        setClientSecret(data.data.clientSecret);
+      if (response.success) {
+        setSuccess('Payment completed successfully!');
+        onPaymentSuccess && onPaymentSuccess(response.data);
+        
+        // Reset form after success
+        setTimeout(() => {
+          setAmount('');
+          setDescription('');
+          setSuccess('');
+        }, 3000);
       } else {
-        setError(data.message || 'Failed to create payment intent');
+        setError(response.message || 'Payment failed');
+        onPaymentError && onPaymentError(response.message);
       }
-    } catch (err) {
-      setError('Network error. Please try again.');
+    } catch (error) {
+      setError('Payment processing failed. Please try again.');
+      onPaymentError && onPaymentError(error.message);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handlePayPalPayment = async () => {
+    if (!amount || amount <= 0) {
+      setError('Please enter a valid amount');
+      return;
+    }
+
+    setIsProcessing(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await apiService.request('/payments/create-order', {
+        method: 'POST',
+        body: JSON.stringify({
+          amount: parseFloat(amount),
+          currency,
+          description: description || 'AutoCare Pro Service Payment'
+        })
+      });
+
+      if (response.success && response.data.approvalUrl) {
+        // Redirect to PayPal for payment
+        window.location.href = response.data.approvalUrl;
+      } else {
+        setError(response.message || 'Failed to create PayPal order');
+        onPaymentError && onPaymentError(response.message);
+      }
+    } catch (error) {
+      setError('PayPal payment failed. Please try again.');
+      onPaymentError && onPaymentError(error.message);
     } finally {
       setIsProcessing(false);
     }
@@ -68,73 +113,11 @@ const PaymentFormContent = ({ onPaymentSuccess, onPaymentError }) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    if (!stripe || !elements) {
-      return;
-    }
-
-    if (!clientSecret) {
-      await handleCreatePaymentIntent();
-      return;
-    }
-
-    setIsProcessing(true);
-    setError('');
-
-    const cardElement = elements.getElement(CardElement);
-
-    const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: cardElement,
-        billing_details: {
-          name: 'AutoCare Pro Customer',
-        },
-      }
-    });
-
-    if (error) {
-      setError(error.message);
-      setIsProcessing(false);
+    if (paymentMethod === 'paypal') {
+      await handlePayPalPayment();
     } else {
-      // Payment succeeded
-      try {
-        const token = localStorage.getItem('token');
-        await fetch('/api/v1/payments/confirm-payment', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            paymentIntentId: paymentIntent.id
-          })
-        });
-
-        onPaymentSuccess && onPaymentSuccess(paymentIntent);
-        
-        // Reset form
-        setAmount('');
-        setDescription('');
-        setClientSecret('');
-      } catch (err) {
-        console.error('Payment confirmation error:', err);
-      }
-      setIsProcessing(false);
+      await handleMockPayment();
     }
-  };
-
-  const cardStyle = {
-    style: {
-      base: {
-        fontSize: '16px',
-        color: '#424770',
-        '::placeholder': {
-          color: '#aab7c4',
-        },
-      },
-      invalid: {
-        color: '#9e2146',
-      },
-    },
   };
 
   return (
@@ -145,7 +128,7 @@ const PaymentFormContent = ({ onPaymentSuccess, onPaymentError }) => {
           Payment
         </CardTitle>
         <CardDescription>
-          Enter payment details for AutoCare Pro services
+          Choose your payment method for AutoCare Pro services
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -153,6 +136,13 @@ const PaymentFormContent = ({ onPaymentSuccess, onPaymentError }) => {
           {error && (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {success && (
+            <Alert className="border-green-200 bg-green-50">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">{success}</AlertDescription>
             </Alert>
           )}
 
@@ -170,6 +160,7 @@ const PaymentFormContent = ({ onPaymentSuccess, onPaymentError }) => {
                 step="0.01"
                 min="0.01"
                 disabled={isProcessing}
+                required
               />
             </div>
           </div>
@@ -181,9 +172,9 @@ const PaymentFormContent = ({ onPaymentSuccess, onPaymentError }) => {
                 <SelectValue placeholder="Select currency" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="usd">USD - US Dollar</SelectItem>
-                <SelectItem value="eur">EUR - Euro</SelectItem>
-                <SelectItem value="gbp">GBP - British Pound</SelectItem>
+                <SelectItem value="USD">USD - US Dollar</SelectItem>
+                <SelectItem value="EUR">EUR - Euro</SelectItem>
+                <SelectItem value="GBP">GBP - British Pound</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -199,92 +190,68 @@ const PaymentFormContent = ({ onPaymentSuccess, onPaymentError }) => {
             />
           </div>
 
-          {clientSecret && (
+          <div className="space-y-2">
+            <Label>Payment Method</Label>
             <div className="space-y-2">
-              <Label>Card Details</Label>
-              <div className="p-3 border rounded-md">
-                <CardElement options={cardStyle} />
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="mock"
+                  name="paymentMethod"
+                  value="mock"
+                  checked={paymentMethod === 'mock'}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  disabled={isProcessing}
+                />
+                <Label htmlFor="mock" className="flex items-center gap-2 cursor-pointer">
+                  <CreditCard className="h-4 w-4" />
+                  Mock Payment (Development)
+                </Label>
               </div>
+              
+              {paypalConfig && (
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="paypal"
+                    name="paymentMethod"
+                    value="paypal"
+                    checked={paymentMethod === 'paypal'}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    disabled={isProcessing}
+                  />
+                  <Label htmlFor="paypal" className="flex items-center gap-2 cursor-pointer">
+                    <CreditCardIcon className="h-4 w-4 text-blue-600" />
+                    PayPal
+                  </Label>
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
           <Button
             type="submit"
             className="w-full"
-            disabled={!stripe || isProcessing}
+            disabled={isProcessing}
           >
             {isProcessing ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {clientSecret ? 'Processing Payment...' : 'Creating Payment...'}
+                Processing Payment...
               </>
             ) : (
-              clientSecret ? `Pay $${amount}` : 'Create Payment'
+              paymentMethod === 'paypal' ? 'Pay with PayPal' : 'Process Mock Payment'
             )}
           </Button>
+
+          {paymentMethod === 'mock' && (
+            <p className="text-xs text-gray-500 text-center">
+              Mock payments are for development/testing only. No real charges will be made.
+            </p>
+          )}
         </form>
       </CardContent>
     </Card>
-  );
-};
-
-const PaymentForm = ({ onPaymentSuccess, onPaymentError }) => {
-  const [stripePublishableKey, setStripePublishableKey] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    const fetchStripeConfig = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await fetch('/api/v1/payments/config', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-          setStripePublishableKey(data.data.publishableKey);
-          stripePromise = loadStripe(data.data.publishableKey);
-        } else {
-          setError('Failed to load payment configuration');
-        }
-      } catch (err) {
-        setError('Failed to initialize payment system');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStripeConfig();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Loading payment system...</span>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
-    );
-  }
-
-  return (
-    <Elements stripe={stripePromise}>
-      <PaymentFormContent 
-        onPaymentSuccess={onPaymentSuccess}
-        onPaymentError={onPaymentError}
-      />
-    </Elements>
   );
 };
 
