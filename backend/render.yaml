@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: autocare-pro-backend
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: API_VERSION
+        value: v1
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 900000
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: 100
+      - key: ADMIN_EMAILS
+        value: admin@autocare.com,superadmin@autocare.com
+      - key: SOCKET_CORS_ORIGIN
+        value: https://autocare-pro-frontend.vercel.app
+      - key: FRONTEND_URL
+        value: https://autocare-pro-frontend.vercel.app 
