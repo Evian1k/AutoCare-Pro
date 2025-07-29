@@ -22,6 +22,6 @@ services:
       - key: ADMIN_EMAILS
         value: admin@autocare.com,superadmin@autocare.com
       - key: SOCKET_CORS_ORIGIN
-        value: https://autocare-pro-frontend.vercel.app
+        value: https://auto-care-pro-269h.vercel.app
       - key: FRONTEND_URL
-        value: https://autocare-pro-frontend.vercel.app 
+        value: https://auto-care-pro-269h.vercel.app 

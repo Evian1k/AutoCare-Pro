@@ -1,46 +1,55 @@
-// backend/routes/payments.js
-import express from 'express';
-import dotenv from 'dotenv';
-
-dotenv.config();
-
+const express = require('express');
 const router = express.Router();
 
-// PayPal Configuration
+// PayPal configuration
 const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
 const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET;
-const PAYPAL_MODE = process.env.NODE_ENV === 'production' ? 'live' : 'sandbox';
-
-// PayPal API Base URL
+const PAYPAL_MODE = process.env.PAYPAL_MODE || 'sandbox';
 const PAYPAL_BASE_URL = PAYPAL_MODE === 'live' 
   ? 'https://api-m.paypal.com' 
   : 'https://api-m.sandbox.paypal.com';
 
-// Get PayPal Access Token
-async function getPayPalAccessToken() {
+// Get PayPal access token
+const getPayPalAccessToken = async () => {
   try {
+    const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString('base64');
     const response = await fetch(`${PAYPAL_BASE_URL}/v1/oauth2/token`, {
       method: 'POST',
       headers: {
-        'Authorization': `Basic ${Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString('base64')}`,
+        'Authorization': `Basic ${auth}`,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: 'grant_type=client_credentials',
     });
-
+    
     const data = await response.json();
     return data.access_token;
   } catch (error) {
     console.error('PayPal access token error:', error);
     throw error;
   }
-}
+};
 
-// Create PayPal Order
+// GET /api/v1/payments/config
+// Get payment configuration for frontend
+router.get('/config', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      paypal: {
+        clientId: PAYPAL_CLIENT_ID,
+        mode: PAYPAL_MODE
+      }
+    }
+  });
+});
+
+// POST /api/v1/payments/create-order
+// Create PayPal order
 router.post('/create-order', async (req, res) => {
   try {
     const { amount, currency = 'USD', description = 'AutoCare Pro Service' } = req.body;
-
+    
     if (!amount || amount <= 0) {
       return res.status(400).json({
         success: false,
@@ -49,7 +58,7 @@ router.post('/create-order', async (req, res) => {
     }
 
     const accessToken = await getPayPalAccessToken();
-
+    
     const orderData = {
       intent: 'CAPTURE',
       purchase_units: [
@@ -77,7 +86,7 @@ router.post('/create-order', async (req, res) => {
     });
 
     const data = await response.json();
-
+    
     if (data.id) {
       res.json({
         success: true,
@@ -101,20 +110,21 @@ router.post('/create-order', async (req, res) => {
   }
 });
 
-// Capture PayPal Payment
+// POST /api/v1/payments/capture-payment
+// Capture PayPal payment
 router.post('/capture-payment', async (req, res) => {
   try {
     const { orderId } = req.body;
-
+    
     if (!orderId) {
       return res.status(400).json({
         success: false,
-        message: 'Order ID is required',
+        message: 'Order ID is required'
       });
     }
 
     const accessToken = await getPayPalAccessToken();
-
+    
     const response = await fetch(`${PAYPAL_BASE_URL}/v2/checkout/orders/${orderId}/capture`, {
       method: 'POST',
       headers: {
@@ -124,16 +134,14 @@ router.post('/capture-payment', async (req, res) => {
     });
 
     const data = await response.json();
-
+    
     if (data.status === 'COMPLETED') {
-      // Here you would typically save the payment record to your database
       res.json({
         success: true,
         data: {
           paymentId: data.purchase_units[0].payments.captures[0].id,
           status: data.status,
           amount: data.purchase_units[0].payments.captures[0].amount.value,
-          currency: data.purchase_units[0].payments.captures[0].amount.currency_code,
         },
       });
     } else {
@@ -143,7 +151,7 @@ router.post('/capture-payment', async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('PayPal capture error:', error);
+    console.error('PayPal payment capture error:', error);
     res.status(500).json({
       success: false,
       message: 'Payment capture error',
@@ -151,40 +159,26 @@ router.post('/capture-payment', async (req, res) => {
   }
 });
 
-// Get PayPal Configuration
-router.get('/config', async (req, res) => {
-  try {
-    res.json({
-      success: true,
-      data: {
-        clientId: PAYPAL_CLIENT_ID,
-        mode: PAYPAL_MODE,
-        currency: 'USD',
-        supportedCurrencies: ['USD', 'EUR', 'GBP'],
-      },
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to load payment configuration',
-    });
-  }
-});
-
-// Mock Payment (for development/testing)
+// POST /api/v1/payments/mock-payment
+// Mock payment for testing
 router.post('/mock-payment', async (req, res) => {
   try {
     const { amount, currency = 'USD', description = 'AutoCare Pro Service' } = req.body;
+    
+    if (!amount || amount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid amount provided'
+      });
+    }
 
     // Simulate payment processing delay
     await new Promise(resolve => setTimeout(resolve, 1000));
-
-    const mockPaymentId = `mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
+    
     res.json({
       success: true,
       data: {
-        paymentId: mockPaymentId,
+        paymentId: `mock_${Date.now()}`,
         status: 'COMPLETED',
         amount: amount,
         currency: currency,
@@ -193,11 +187,12 @@ router.post('/mock-payment', async (req, res) => {
       },
     });
   } catch (error) {
+    console.error('Mock payment error:', error);
     res.status(500).json({
       success: false,
-      message: 'Mock payment failed',
+      message: 'Mock payment error',
     });
   }
 });
 
-export default router;
+module.exports = router;

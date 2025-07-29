@@ -1,53 +1,35 @@
-// Global error handling middleware
-export const errorHandler = (err, req, res, next) => {
-  console.error('Error Stack:', err.stack);
-
-  // Mongoose validation error
-  if (err.name === 'ValidationError') {
-    const errors = Object.values(err.errors).map(e => e.message);
-    return res.status(400).json({
-      success: false,
-      message: 'Validation Error',
-      errors
-    });
-  }
-
-  // Mongoose duplicate key error
-  if (err.code === 11000) {
-    const field = Object.keys(err.keyValue)[0];
-    return res.status(400).json({
-      success: false,
-      message: `${field} already exists`
-    });
-  }
-
-  // Mongoose cast error (invalid ObjectId)
-  if (err.name === 'CastError') {
-    return res.status(400).json({
-      success: false,
-      message: 'Invalid ID format'
-    });
-  }
-
-  // JWT errors
-  if (err.name === 'JsonWebTokenError') {
-    return res.status(401).json({
-      success: false,
-      message: 'Invalid token'
-    });
-  }
-
-  if (err.name === 'TokenExpiredError') {
-    return res.status(401).json({
-      success: false,
-      message: 'Token expired'
-    });
-  }
+const errorHandler = (err, req, res, next) => {
+  console.error('Error:', err);
 
   // Default error
-  res.status(err.statusCode || 500).json({
+  let statusCode = 500;
+  let message = 'Internal Server Error';
+
+  // Handle specific error types
+  if (err.name === 'ValidationError') {
+    statusCode = 400;
+    message = 'Validation Error';
+  } else if (err.name === 'JsonWebTokenError') {
+    statusCode = 401;
+    message = 'Invalid token';
+  } else if (err.name === 'TokenExpiredError') {
+    statusCode = 401;
+    message = 'Token expired';
+  } else if (err.name === 'SequelizeValidationError') {
+    statusCode = 400;
+    message = 'Validation Error';
+  } else if (err.name === 'SequelizeUniqueConstraintError') {
+    statusCode = 409;
+    message = 'Resource already exists';
+  }
+
+  res.status(statusCode).json({
     success: false,
-    message: err.message || 'Internal Server Error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    message: message,
+    ...(process.env.NODE_ENV === 'development' && { error: err.message })
   });
+};
+
+module.exports = {
+  errorHandler
 };

@@ -1,29 +1,32 @@
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
-import dotenv from 'dotenv';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
-import mongoose from 'mongoose';
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const dotenv = require('dotenv');
+const { createServer } = require('http');
+const { Server } = require('socket.io');
+
+// Import database
+const { sequelize, testConnection } = require('./src/config/database');
+const { initializeDatabase } = require('./src/config/init-db');
 
 // Import routes
-import authRoutes from '../backend/src/routes/auth.js';
-import userRoutes from '../backend/src/routes/users.js';
-import serviceRoutes from './src/routes/services.js';
-import truckRoutes from './src/routes/trucks.js';
-import messageRoutes from './src/routes/messages.js';
-import pickupRoutes from './src/routes/pickups.js';
-import branchRoutes from './src/routes/branches.js';
-import bookingRoutes from './src/routes/bookings.js';
-import analyticsRoutes from './src/routes/analytics.js';
-import dashboardRoutes from './src/routes/dashboard.js  ';
-import locationRoutes from './src/routes/locations.js';
-import paymentRoutes from './src/routes/payments.js';
+const authRoutes = require('./src/routes/auth');
+const userRoutes = require('./src/routes/users');
+const serviceRoutes = require('./src/routes/services');
+const truckRoutes = require('./src/routes/trucks');
+const messageRoutes = require('./src/routes/messages');
+const pickupRoutes = require('./src/routes/pickups');
+const branchRoutes = require('./src/routes/branches');
+const bookingRoutes = require('./src/routes/bookings');
+const analyticsRoutes = require('./src/routes/analytics');
+const dashboardRoutes = require('./src/routes/dashboard');
+const locationRoutes = require('./src/routes/locations');
+const paymentRoutes = require('./src/routes/payments');
 
 // Import middleware
-import { authenticateToken } from './src/middleware/auth.js';
-import { errorHandler } from './src/middleware/errorHandler.js';
+const { authenticateToken } = require('./src/middleware/auth');
+const { errorHandler } = require('./src/middleware/errorHandler');
 
 // Load environment variables
 dotenv.config();
@@ -39,23 +42,41 @@ const io = new Server(server, {
   }
 });
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/autocare-pro')
-  .then(() => {
-    console.log('✅ Connected to MongoDB');
-  })
-  .catch((error) => {
-    console.error('❌ MongoDB connection error:', error);
+// Initialize database
+const initializeApp = async () => {
+  try {
+    // Test database connection
+    const dbConnected = await testConnection();
+    if (!dbConnected) {
+      console.error('❌ Database connection failed');
+      process.exit(1);
+    }
+
+    // Initialize database tables
+    await initializeDatabase();
+    
+    console.log('✅ Database initialized successfully');
+  } catch (error) {
+    console.error('❌ Database initialization error:', error);
     process.exit(1);
-  });
+  }
+};
+
+// Trust proxy for rate limiting
+app.set('trust proxy', 1);
 
 // Middleware
 app.use(helmet());
 app.use(cors({
   origin: [
     'http://localhost:5173',
-    'https://velomanage-clean-frontend.onrender.com', // replace with your actual frontend domain if different
-  ],
+    'http://localhost:5174',
+    'https://auto-care-pro-269h.vercel.app',
+    'https://auto-care-pro-269h-git-main-evian1ks-projects.vercel.app',
+    'https://auto-care-pro-269h-2pu891u7k-evian1ks-projects.vercel.app',
+    process.env.FRONTEND_URL,
+    process.env.SOCKET_CORS_ORIGIN
+  ].filter(Boolean),
   credentials: true
 }));
 
@@ -187,20 +208,23 @@ app.use('*', (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 
-server.listen(PORT, () => {
-  console.log(`🚀 AutoCare Pro Backend Server running on port ${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`📡 API Base URL: http://localhost:${PORT}/api/${apiVersion}`);
-  console.log(`🔧 Health Check: http://localhost:${PORT}/health`);
+// Start server after database initialization
+initializeApp().then(() => {
+  server.listen(PORT, () => {
+    console.log(`🚀 AutoCare Pro Backend Server running on port ${PORT}`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`📡 API Base URL: http://localhost:${PORT}/api/${apiVersion}`);
+    console.log(`🔧 Health Check: http://localhost:${PORT}/health`);
+  });
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, shutting down gracefully');
-  server.close(() => {
+  server.close(async () => {
     console.log('Process terminated');
-    mongoose.connection.close();
+    await sequelize.close();
   });
 });
 
-export default app;
+module.exports = app;

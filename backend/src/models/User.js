@@ -1,140 +1,107 @@
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
+const bcrypt = require('bcrypt');
 
-const userSchema = new mongoose.Schema({
+const User = sequelize.define('User', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
   name: {
-    type: String,
-    required: true,
-    trim: true,
-    maxlength: 50
+    type: DataTypes.STRING,
+    allowNull: false
   },
   email: {
-    type: String,
-    required: true,
+    type: DataTypes.STRING,
+    allowNull: false,
     unique: true,
-    lowercase: true,
-    trim: true
-  },
-  password: {
-    type: String,
-    required: true,
-    minlength: 6
-  },
-  phone: {
-    type: String,
-    trim: true
-  },
-  isAdmin: {
-    type: Boolean,
-    default: false
-  },
-  role: {
-    type: String,
-    enum: ['user', 'admin', 'main_admin', 'super_admin', 'driver', 'mechanic', 'manager'],
-    default: 'user'
-  },
-  vehicleCount: {
-    type: Number,
-    default: 0
-  },
-  lastService: {
-    type: Date
-  },
-  isActive: {
-    type: Boolean,
-    default: true
-  },
-  profile: {
-    avatar: String,
-    address: String,
-    dateOfBirth: Date,
-    emergencyContact: {
-      name: String,
-      phone: String
+    validate: {
+      isEmail: true
     }
   },
+  password: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  phone: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  role: {
+    type: DataTypes.ENUM('user', 'admin', 'driver'),
+    defaultValue: 'user'
+  },
+  isActive: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true
+  },
+  profileImage: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  address: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
   preferences: {
-    notifications: {
-      email: { type: Boolean, default: true },
-      sms: { type: Boolean, default: false },
-      push: { type: Boolean, default: true }
+    type: DataTypes.TEXT, // JSON string
+    allowNull: true,
+    get() {
+      const rawValue = this.getDataValue('preferences');
+      return rawValue ? JSON.parse(rawValue) : {};
     },
-    theme: {
-      type: String,
-      enum: ['light', 'dark'],
-      default: 'dark'
+    set(value) {
+      this.setDataValue('preferences', JSON.stringify(value));
     }
   }
 }, {
-  timestamps: true
-});
-
-// Hash password before saving
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  
-  try {
-    const salt = await bcrypt.genSalt(12);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
+  tableName: 'users',
+  hooks: {
+    beforeCreate: async (user) => {
+      if (user.password) {
+        user.password = await bcrypt.hash(user.password, 10);
+      }
+    },
+    beforeUpdate: async (user) => {
+      if (user.changed('password')) {
+        user.password = await bcrypt.hash(user.password, 10);
+      }
+    }
   }
 });
 
-// Compare password method
-userSchema.methods.comparePassword = async function(candidatePassword) {
+// Instance method to compare password
+User.prototype.comparePassword = async function(candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Remove password from JSON output
-userSchema.methods.toJSON = function() {
-  const userObject = this.toObject();
-  delete userObject.password;
-  return userObject;
+// Instance method to get public profile
+User.prototype.toPublicJSON = function() {
+  const user = this.toJSON();
+  delete user.password;
+  return user;
 };
-
-// Check if user is admin
-userSchema.methods.isAdminUser = function() {
-  return this.isAdmin && ['admin', 'main_admin', 'super_admin'].includes(this.role);
-};
-
-// Check role permissions
-userSchema.methods.hasPermission = function(permission) {
-  const rolePermissions = {
-    super_admin: ['all'],
-    main_admin: ['manage_users', 'manage_trucks', 'manage_branches', 'view_analytics', 'manage_bookings'],
-    admin: ['manage_trucks', 'view_analytics', 'manage_bookings'],
-    manager: ['manage_branch', 'manage_staff', 'view_reports'],
-    mechanic: ['update_maintenance', 'view_trucks'],
-    driver: ['update_location', 'view_assigned_trucks'],
-    user: ['book_service', 'view_own_data']
-  };
-
-  const userPermissions = rolePermissions[this.role] || [];
-  return userPermissions.includes('all') || userPermissions.includes(permission);
-};
-
-// Admin emails configuration
-const ADMIN_EMAILS = [
-  'emmanuel.evian@autocare.com',
-  'ibrahim.mohamud@autocare.com',
-  'joel.nganga@autocare.com',
-  'patience.karanja@autocare.com',
-  'joyrose.kinuthia@autocare.com'
-];
 
 // Static method to check if email is admin
-userSchema.statics.isAdminEmail = function(email) {
+User.isAdminEmail = function(email) {
+  const ADMIN_EMAILS = [
+    'emmanuel.evian@autocare.com',
+    'ibrahim.mohamud@autocare.com',
+    'joel.nganga@autocare.com',
+    'patience.karanja@autocare.com',
+    'joyrose.kinuthia@autocare.com',
+    'admin@autocare.com'
+  ];
   return ADMIN_EMAILS.includes(email.toLowerCase());
 };
 
 // Static method to get admin user data
-userSchema.statics.getAdminByEmail = function(email) {
+User.getAdminByEmail = function(email) {
   const adminData = {
     'emmanuel.evian@autocare.com': {
       name: 'Emmanuel Evian',
-      role: 'main_admin'
+      role: 'admin'
     },
     'ibrahim.mohamud@autocare.com': {
       name: 'Ibrahim Mohamud',
@@ -151,18 +118,14 @@ userSchema.statics.getAdminByEmail = function(email) {
     'joyrose.kinuthia@autocare.com': {
       name: 'Joyrose Kinuthia',
       role: 'admin'
+    },
+    'admin@autocare.com': {
+      name: 'Admin User',
+      role: 'admin'
     }
   };
   
   return adminData[email.toLowerCase()];
 };
 
-// Indexes for better performance
-userSchema.index({ email: 1 });
-userSchema.index({ isAdmin: 1 });
-userSchema.index({ role: 1 });
-userSchema.index({ createdAt: -1 });
-
-const User = mongoose.model('User', userSchema);
-
-export default User;
+module.exports = User;

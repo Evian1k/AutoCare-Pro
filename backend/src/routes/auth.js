@@ -1,8 +1,8 @@
-import express from 'express';
-import jwt from 'jsonwebtoken';
-import { body, validationResult } from 'express-validator';
-import User from '../models/User.js';
-import { checkDuplicateEmail, checkEmailAvailability } from '../middleware/duplicateEmailCheck.js';
+const express = require('express');
+const jwt = require('jsonwebtoken');
+const { body, validationResult } = require('express-validator');
+const User = require('../models/User');
+const { checkDuplicateEmail, checkEmailAvailability } = require('../middleware/duplicateEmailCheck');
 
 const router = express.Router();
 

@@ -9,6 +9,6 @@
     }
   ],
   "env": {
-    "VITE_API_URL": "https://autocare-pro-backend.onrender.com/api/v1"
+    "VITE_API_URL": "https://autocare-pro-2.onrender.com/api/v1"
   }
 } 
