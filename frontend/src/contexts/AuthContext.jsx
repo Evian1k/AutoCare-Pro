@@ -171,7 +171,20 @@ export const AuthProvider = ({ children }) => {
         loadUserPermissions(userData);
         startSessionTimer();
         setShowLogin(false);
-        audioSystem.playVictoryFanfare();
+        
+        // Epic role-based redirect with animations
+        if (userData.role === 'admin' || userData.isAdmin) {
+          console.log('👑 Admin login detected - redirecting to admin dashboard');
+          audioSystem.playVictoryFanfare();
+          // Redirect to admin dashboard
+          window.location.href = '/admin';
+        } else {
+          console.log('👤 User login detected - redirecting to user dashboard');
+          audioSystem.playSuccess();
+          // Redirect to user dashboard
+          window.location.href = '/dashboard';
+        }
+        
         return { success: true };
       } else {
         console.log('❌ Login failed:', response.message);

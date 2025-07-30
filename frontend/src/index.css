@@ -3,7 +3,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600;700;800;900&family=Black+Ops+One&display=swap');
 
 :root {
   --background: 0 0% 3.9%;
@@ -41,7 +41,7 @@ body {
   position: relative;
 }
 
-/* Epic animated background */
+/* 🔥 EPIC HARD ROCK BACKGROUND */
 body::before {
   content: '';
   position: fixed;
@@ -50,14 +50,15 @@ body::before {
   width: 100%;
   height: 100%;
   background: 
-    radial-gradient(circle at 20% 80%, rgba(220, 38, 38, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(239, 68, 68, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(220, 38, 38, 0.05) 0%, transparent 50%);
-  animation: epicPulse 8s ease-in-out infinite;
+    radial-gradient(circle at 20% 80%, rgba(220, 38, 38, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(239, 68, 68, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(220, 38, 38, 0.1) 0%, transparent 50%),
+    linear-gradient(45deg, transparent 30%, rgba(220, 38, 38, 0.05) 50%, transparent 70%);
+  animation: epicPulse 8s ease-in-out infinite, fireShift 12s linear infinite;
   z-index: -1;
 }
 
-/* Legendary particle effects */
+/* 🔥 FIERY PARTICLE EFFECTS */
 body::after {
   content: '';
   position: fixed;
@@ -66,80 +67,108 @@ body::after {
   width: 100%;
   height: 100%;
   background-image: 
-    radial-gradient(2px 2px at 20px 30px, #dc2626, transparent),
-    radial-gradient(2px 2px at 40px 70px, #ef4444, transparent),
-    radial-gradient(1px 1px at 90px 40px, #f97316, transparent),
-    radial-gradient(1px 1px at 130px 80px, #eab308, transparent),
-    radial-gradient(2px 2px at 160px 30px, #dc2626, transparent);
+    radial-gradient(3px 3px at 20px 30px, #dc2626, transparent),
+    radial-gradient(3px 3px at 40px 70px, #ef4444, transparent),
+    radial-gradient(2px 2px at 90px 40px, #f97316, transparent),
+    radial-gradient(2px 2px at 130px 80px, #eab308, transparent),
+    radial-gradient(3px 3px at 160px 30px, #dc2626, transparent),
+    radial-gradient(2px 2px at 200px 60px, #ef4444, transparent),
+    radial-gradient(3px 3px at 250px 20px, #f97316, transparent);
   background-repeat: repeat;
-  background-size: 200px 100px;
-  animation: sparkle 20s linear infinite;
-  opacity: 0.3;
+  background-size: 300px 200px;
+  animation: sparkle 15s linear infinite, fireRise 20s ease-in-out infinite;
+  opacity: 0.4;
   z-index: -1;
 }
 
+@keyframes fireShift {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  25% { transform: translateX(10px) rotate(1deg); }
+  50% { transform: translateX(-5px) rotate(-1deg); }
+  75% { transform: translateX(15px) rotate(0.5deg); }
+}
+
+@keyframes fireRise {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-20px) scale(1.1); }
+}
+
 @keyframes sparkle {
-  0% { transform: translateY(0px); }
-  100% { transform: translateY(-100px); }
+  0% { transform: translateY(0px) rotate(0deg); }
+  100% { transform: translateY(-200px) rotate(360deg); }
 }
 
 @keyframes epicPulse {
   0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.6; }
+  50% { opacity: 0.7; }
 }
 
-/* Custom scrollbar */
+/* 🎸 EPIC CUSTOM SCROLLBAR */
 ::-webkit-scrollbar {
-  width: 12px;
+  width: 16px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 8px;
+  border: 1px solid rgba(220, 38, 38, 0.3);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #dc2626, #b91c1c);
-  border-radius: 6px;
+  background: linear-gradient(180deg, #dc2626, #b91c1c, #dc2626);
+  border-radius: 8px;
   border: 2px solid rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #ef4444, #dc2626);
+  background: linear-gradient(180deg, #ef4444, #dc2626, #ef4444);
+  box-shadow: 0 0 20px rgba(220, 38, 38, 0.8);
 }
 
-/* Epic glass effect */
+/* 🔥 EPIC GLASS EFFECT */
 .glass-effect {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(25px);
+  border: 2px solid rgba(255, 255, 255, 0.15);
   box-shadow: 
     0 8px 32px 0 rgba(31, 38, 135, 0.37),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 0 20px rgba(220, 38, 38, 0.3);
 }
 
-/* Legendary neon glow */
+/* 🔥 LEGENDARY NEON GLOW */
 .neon-glow {
   box-shadow: 
-    0 0 20px rgba(220, 38, 38, 0.4),
-    0 0 40px rgba(220, 38, 38, 0.2),
-    0 0 60px rgba(220, 38, 38, 0.1);
+    0 0 20px rgba(220, 38, 38, 0.6),
+    0 0 40px rgba(220, 38, 38, 0.4),
+    0 0 60px rgba(220, 38, 38, 0.2),
+    inset 0 0 20px rgba(220, 38, 38, 0.1);
   animation: neonPulse 2s ease-in-out infinite alternate;
 }
 
 .neon-glow:hover {
   box-shadow: 
-    0 0 30px rgba(220, 38, 38, 0.6),
-    0 0 60px rgba(220, 38, 38, 0.3),
-    0 0 90px rgba(220, 38, 38, 0.2);
+    0 0 30px rgba(220, 38, 38, 0.8),
+    0 0 60px rgba(220, 38, 38, 0.6),
+    0 0 90px rgba(220, 38, 38, 0.4),
+    inset 0 0 30px rgba(220, 38, 38, 0.2);
 }
 
 @keyframes neonPulse {
-  from { box-shadow: 0 0 20px rgba(220, 38, 38, 0.4), 0 0 40px rgba(220, 38, 38, 0.2); }
-  to { box-shadow: 0 0 30px rgba(220, 38, 38, 0.6), 0 0 60px rgba(220, 38, 38, 0.3); }
+  from { 
+    box-shadow: 
+      0 0 20px rgba(220, 38, 38, 0.6),
+      0 0 40px rgba(220, 38, 38, 0.4);
+  }
+  to { 
+    box-shadow: 
+      0 0 30px rgba(220, 38, 38, 0.8),
+      0 0 60px rgba(220, 38, 38, 0.6);
+  }
 }
 
-/* Epic gradient text */
+/* 🎸 EPIC GRADIENT TEXT */
 .gradient-text {
   background: linear-gradient(135deg, #dc2626, #f97316, #eab308, #dc2626);
   background-size: 300% 300%;
@@ -147,6 +176,8 @@ body::after {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   animation: gradientShift 3s ease infinite;
+  font-weight: 900;
+  text-shadow: 0 0 30px rgba(220, 38, 38, 0.5);
 }
 
 @keyframes gradientShift {
@@ -154,26 +185,26 @@ body::after {
   50% { background-position: 100% 50%; }
 }
 
-/* Animated background */
+/* 🔥 EPIC ANIMATED BACKGROUND */
 .animated-bg {
   background: linear-gradient(-45deg, #0a0a0a, #1a0a0a, #2a0505, #0a0a0a);
   background-size: 400% 400%;
   animation: gradientShift 15s ease infinite;
 }
 
-/* Epic floating animation */
+/* 🎸 EPIC FLOATING ANIMATION */
 .floating {
   animation: epicFloating 4s ease-in-out infinite;
 }
 
 @keyframes epicFloating {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  25% { transform: translateY(-10px) rotate(1deg); }
-  50% { transform: translateY(-5px) rotate(-1deg); }
-  75% { transform: translateY(-15px) rotate(0.5deg); }
+  0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
+  25% { transform: translateY(-10px) rotate(1deg) scale(1.02); }
+  50% { transform: translateY(-5px) rotate(-1deg) scale(1.01); }
+  75% { transform: translateY(-15px) rotate(0.5deg) scale(1.03); }
 }
 
-/* Legendary pulse glow */
+/* 🔥 LEGENDARY PULSE GLOW */
 .pulse-glow {
   animation: legendaryPulse 3s ease-in-out infinite alternate;
 }
@@ -181,17 +212,17 @@ body::after {
 @keyframes legendaryPulse {
   from {
     box-shadow: 
-      0 0 20px rgba(220, 38, 38, 0.4),
-      0 0 40px rgba(220, 38, 38, 0.2);
+      0 0 20px rgba(220, 38, 38, 0.6),
+      0 0 40px rgba(220, 38, 38, 0.4);
   }
   to {
     box-shadow: 
       0 0 40px rgba(220, 38, 38, 0.8),
-      0 0 80px rgba(220, 38, 38, 0.4);
+      0 0 80px rgba(220, 38, 38, 0.6);
   }
 }
 
-/* Epic card hover effects */
+/* 🎸 EPIC CARD HOVER EFFECTS */
 .card-hover {
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
@@ -205,31 +236,33 @@ body::after {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  transition: left 0.6s;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.8s;
 }
 
 .card-hover:hover {
   transform: translateY(-8px) scale(1.02);
   box-shadow: 
     0 25px 50px rgba(0, 0, 0, 0.5),
-    0 0 30px rgba(220, 38, 38, 0.3);
+    0 0 30px rgba(220, 38, 38, 0.4),
+    0 0 60px rgba(220, 38, 38, 0.2);
 }
 
 .card-hover:hover::before {
   left: 100%;
 }
 
-/* Legendary button animations */
+/* 🔥 LEGENDARY BUTTON ANIMATIONS */
 .btn-animate {
   position: relative;
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   background: linear-gradient(135deg, #dc2626, #b91c1c);
   border: none;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
+  font-family: 'Black Ops One', cursive;
 }
 
 .btn-animate::before {
@@ -239,15 +272,16 @@ body::after {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.6s;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.8s;
 }
 
 .btn-animate:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px) scale(1.05);
   box-shadow: 
-    0 10px 20px rgba(220, 38, 38, 0.4),
-    0 0 30px rgba(220, 38, 38, 0.2);
+    0 15px 30px rgba(220, 38, 38, 0.6),
+    0 0 40px rgba(220, 38, 38, 0.4),
+    0 0 60px rgba(220, 38, 38, 0.2);
 }
 
 .btn-animate:hover::before {
@@ -255,17 +289,18 @@ body::after {
 }
 
 .btn-animate:active {
-  transform: translateY(0);
+  transform: translateY(-1px) scale(1.02);
 }
 
-/* Epic loading spinner */
+/* 🎸 EPIC LOADING SPINNER */
 .loading-spinner {
-  border: 3px solid rgba(220, 38, 38, 0.3);
-  border-top: 3px solid #dc2626;
+  border: 4px solid rgba(220, 38, 38, 0.3);
+  border-top: 4px solid #dc2626;
   border-radius: 50%;
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   animation: epicSpin 1s linear infinite;
+  box-shadow: 0 0 20px rgba(220, 38, 38, 0.5);
 }
 
 @keyframes epicSpin {
@@ -273,7 +308,7 @@ body::after {
   100% { transform: rotate(360deg); }
 }
 
-/* Legendary status indicators */
+/* 🔥 LEGENDARY STATUS INDICATORS */
 .status-indicator {
   position: relative;
 }
@@ -284,23 +319,24 @@ body::after {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: #10b981;
   animation: epicPulse 2s infinite;
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.8);
 }
 
-/* Epic message bubbles */
+/* 🎸 EPIC MESSAGE BUBBLES */
 .message-bubble {
   position: relative;
   border-radius: 20px;
-  padding: 16px 20px;
-  margin: 8px 0;
+  padding: 18px 22px;
+  margin: 10px 0;
   max-width: 75%;
   word-wrap: break-word;
   transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
 }
 
 .message-bubble.sent {
@@ -308,32 +344,34 @@ body::after {
   color: white;
   margin-left: auto;
   border-bottom-right-radius: 8px;
-  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
 }
 
 .message-bubble.received {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.15);
   color: white;
   margin-right: auto;
   border-bottom-left-radius: 8px;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .message-bubble:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
-/* Epic payment form styling */
+/* 🔥 EPIC PAYMENT FORM STYLING */
 .payment-form {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(30px);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 25px;
-  padding: 2.5rem;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(35px);
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  border-radius: 30px;
+  padding: 3rem;
   box-shadow: 
-    0 25px 50px -12px rgba(0, 0, 0, 0.4),
-    0 0 30px rgba(220, 38, 38, 0.2);
+    0 25px 50px -12px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(220, 38, 38, 0.3),
+    0 0 80px rgba(220, 38, 38, 0.1);
   position: relative;
   overflow: hidden;
 }
@@ -344,18 +382,18 @@ body::after {
   top: 0;
   left: 0;
   right: 0;
-  height: 2px;
+  height: 3px;
   background: linear-gradient(90deg, #dc2626, #f97316, #eab308, #dc2626);
   animation: gradientShift 3s ease infinite;
 }
 
-/* Legendary dashboard cards */
+/* 🎸 LEGENDARY DASHBOARD CARDS */
 .dashboard-card {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  padding: 2rem;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 25px;
+  padding: 2.5rem;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
   overflow: hidden;
@@ -368,28 +406,30 @@ body::after {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(220, 38, 38, 0.1), transparent);
-  transition: left 0.6s;
+  background: linear-gradient(90deg, transparent, rgba(220, 38, 38, 0.15), transparent);
+  transition: left 0.8s;
 }
 
 .dashboard-card:hover {
-  transform: translateY(-5px) scale(1.02);
+  transform: translateY(-8px) scale(1.03);
   box-shadow: 
-    0 20px 40px rgba(0, 0, 0, 0.4),
-    0 0 30px rgba(220, 38, 38, 0.2);
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(220, 38, 38, 0.3),
+    0 0 80px rgba(220, 38, 38, 0.1);
 }
 
 .dashboard-card:hover::before {
   left: 100%;
 }
 
-/* Epic navigation styling */
+/* 🔥 EPIC NAVIGATION STYLING */
 .nav-item {
   position: relative;
   transition: all 0.3s ease;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
+  font-family: 'Black Ops One', cursive;
 }
 
 .nav-item::after {
@@ -398,83 +438,85 @@ body::after {
   bottom: -3px;
   left: 0;
   width: 0;
-  height: 3px;
+  height: 4px;
   background: linear-gradient(90deg, #dc2626, #f97316, #eab308);
-  transition: width 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: width 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .nav-item:hover::after {
   width: 100%;
 }
 
-/* Legendary form inputs */
+/* 🎸 LEGENDARY FORM INPUTS */
 .form-input {
-  background: rgba(255, 255, 255, 0.05);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 16px 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  border-radius: 15px;
+  padding: 18px 22px;
   color: white;
   transition: all 0.3s ease;
   font-size: 16px;
+  backdrop-filter: blur(10px);
 }
 
 .form-input:focus {
   outline: none;
   border-color: #dc2626;
   box-shadow: 
-    0 0 0 4px rgba(220, 38, 38, 0.1),
-    0 0 20px rgba(220, 38, 38, 0.2);
+    0 0 0 5px rgba(220, 38, 38, 0.2),
+    0 0 30px rgba(220, 38, 38, 0.3),
+    0 0 60px rgba(220, 38, 38, 0.1);
   transform: scale(1.02);
 }
 
 .form-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.6);
 }
 
-/* Epic success/error states */
+/* 🔥 EPIC SUCCESS/ERROR STATES */
 .success-state {
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(16, 185, 129, 0.15);
   border-color: #10b981;
   color: #10b981;
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.4);
 }
 
 .error-state {
-  background: rgba(239, 68, 68, 0.1);
+  background: rgba(239, 68, 68, 0.15);
   border-color: #ef4444;
   color: #ef4444;
-  box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+  box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
 }
 
-/* Legendary responsive design */
+/* 🎸 LEGENDARY RESPONSIVE DESIGN */
 @media (max-width: 768px) {
   .glass-effect {
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(15px);
   }
   
   .payment-form {
-    padding: 1.5rem;
-    border-radius: 20px;
+    padding: 2rem;
+    border-radius: 25px;
   }
   
   .dashboard-card {
-    padding: 1.5rem;
+    padding: 2rem;
   }
   
   .btn-animate {
     font-size: 14px;
-    padding: 12px 20px;
+    padding: 14px 24px;
   }
 }
 
-/* Epic dark mode enhancements */
+/* 🔥 EPIC DARK MODE ENHANCEMENTS */
 @media (prefers-color-scheme: dark) {
   body {
     background: linear-gradient(135deg, #000000 0%, #1a0000 50%, #000000 100%);
   }
 }
 
-/* Legendary custom animations */
+/* 🎸 LEGENDARY CUSTOM ANIMATIONS */
 .fade-in {
   animation: epicFadeIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
@@ -482,7 +524,7 @@ body::after {
 @keyframes epicFadeIn {
   from {
     opacity: 0;
-    transform: translateY(30px) scale(0.9);
+    transform: translateY(40px) scale(0.8);
   }
   to {
     opacity: 1;
@@ -496,7 +538,7 @@ body::after {
 
 @keyframes epicSlideIn {
   from {
-    transform: translateX(-100%) scale(0.9);
+    transform: translateX(-100%) scale(0.8);
     opacity: 0;
   }
   to {
@@ -505,14 +547,14 @@ body::after {
   }
 }
 
-/* Epic notification styling */
+/* 🔥 EPIC NOTIFICATION STYLING */
 .notification {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(15px);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 15px;
-  padding: 1.5rem;
-  margin: 0.75rem 0;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  border-radius: 20px;
+  padding: 2rem;
+  margin: 1rem 0;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
   overflow: hidden;
@@ -523,35 +565,35 @@ body::after {
   position: absolute;
   top: 0;
   left: 0;
-  width: 4px;
+  width: 5px;
   height: 100%;
   background: linear-gradient(180deg, #dc2626, #f97316);
 }
 
 .notification:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateX(8px) scale(1.02);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.18);
+  transform: translateX(10px) scale(1.03);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
 }
 
-/* Legendary map container styling */
+/* 🎸 LEGENDARY MAP CONTAINER STYLING */
 .map-container {
-  border-radius: 20px;
+  border-radius: 25px;
   overflow: hidden;
   box-shadow: 
-    0 20px 40px rgba(0, 0, 0, 0.4),
-    0 0 30px rgba(220, 38, 38, 0.2);
-  border: 2px solid rgba(255, 255, 255, 0.1);
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(220, 38, 38, 0.3);
+  border: 3px solid rgba(255, 255, 255, 0.15);
 }
 
-/* Epic service request cards */
+/* 🔥 EPIC SERVICE REQUEST CARDS */
 .service-card {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(15px);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  padding: 2rem;
-  margin: 1.5rem 0;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  border-radius: 25px;
+  padding: 2.5rem;
+  margin: 2rem 0;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
   overflow: hidden;
@@ -564,33 +606,35 @@ body::after {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(220, 38, 38, 0.1), transparent);
-  transition: left 0.6s;
+  background: linear-gradient(90deg, transparent, rgba(220, 38, 38, 0.15), transparent);
+  transition: left 0.8s;
 }
 
 .service-card:hover {
-  transform: translateY(-5px) scale(1.02);
+  transform: translateY(-8px) scale(1.03);
   box-shadow: 
-    0 25px 50px rgba(0, 0, 0, 0.4),
-    0 0 30px rgba(220, 38, 38, 0.3);
-  border-color: rgba(220, 38, 38, 0.4);
+    0 30px 60px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(220, 38, 38, 0.4),
+    0 0 80px rgba(220, 38, 38, 0.2);
+  border-color: rgba(220, 38, 38, 0.5);
 }
 
 .service-card:hover::before {
   left: 100%;
 }
 
-/* Legendary status badges */
+/* 🎸 LEGENDARY STATUS BADGES */
 .status-badge {
-  padding: 0.5rem 1rem;
-  border-radius: 25px;
-  font-size: 0.75rem;
-  font-weight: 700;
+  padding: 0.75rem 1.5rem;
+  border-radius: 30px;
+  font-size: 0.875rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border: 2px solid;
+  letter-spacing: 1px;
+  border: 3px solid;
   position: relative;
   overflow: hidden;
+  font-family: 'Black Ops One', cursive;
 }
 
 .status-badge::before {
@@ -600,8 +644,8 @@ body::after {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.6s;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.8s;
 }
 
 .status-badge:hover::before {
@@ -609,67 +653,69 @@ body::after {
 }
 
 .status-badge.pending {
-  background: rgba(245, 158, 11, 0.2);
+  background: rgba(245, 158, 11, 0.25);
   color: #f59e0b;
-  border-color: rgba(245, 158, 11, 0.4);
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+  border-color: rgba(245, 158, 11, 0.5);
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.4);
 }
 
 .status-badge.approved {
-  background: rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.25);
   color: #10b981;
-  border-color: rgba(16, 185, 129, 0.4);
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  border-color: rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.4);
 }
 
 .status-badge.completed {
-  background: rgba(59, 130, 246, 0.2);
+  background: rgba(59, 130, 246, 0.25);
   color: #3b82f6;
-  border-color: rgba(59, 130, 246, 0.4);
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);
 }
 
 .status-badge.cancelled {
-  background: rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.25);
   color: #ef4444;
-  border-color: rgba(239, 68, 68, 0.4);
-  box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+  border-color: rgba(239, 68, 68, 0.5);
+  box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
 }
 
-/* Epic typography */
+/* 🔥 EPIC TYPOGRAPHY */
 .epic-title {
-  font-family: 'Orbitron', monospace;
+  font-family: 'Black Ops One', cursive;
   font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
   background: linear-gradient(135deg, #dc2626, #f97316, #eab308);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   animation: gradientShift 3s ease infinite;
+  text-shadow: 0 0 40px rgba(220, 38, 38, 0.6);
 }
 
 .epic-subtitle {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Orbitron', monospace;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.9);
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
 }
 
-/* Legendary button variants */
+/* 🎸 LEGENDARY BUTTON VARIANTS */
 .btn-epic {
   background: linear-gradient(135deg, #dc2626, #b91c1c);
   border: none;
   color: white;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  padding: 16px 32px;
-  border-radius: 12px;
+  letter-spacing: 2px;
+  padding: 18px 36px;
+  border-radius: 15px;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
   overflow: hidden;
+  font-family: 'Black Ops One', cursive;
 }
 
 .btn-epic::before {
@@ -679,15 +725,16 @@ body::after {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.6s;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.8s;
 }
 
 .btn-epic:hover {
-  transform: translateY(-3px);
+  transform: translateY(-4px) scale(1.05);
   box-shadow: 
-    0 15px 30px rgba(220, 38, 38, 0.4),
-    0 0 40px rgba(220, 38, 38, 0.2);
+    0 20px 40px rgba(220, 38, 38, 0.6),
+    0 0 60px rgba(220, 38, 38, 0.4),
+    0 0 100px rgba(220, 38, 38, 0.2);
 }
 
 .btn-epic:hover::before {
@@ -695,26 +742,28 @@ body::after {
 }
 
 .btn-epic:active {
-  transform: translateY(-1px);
+  transform: translateY(-2px) scale(1.02);
 }
 
-/* Epic modal styling */
+/* 🔥 EPIC MODAL STYLING */
 .epic-modal {
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(20px);
-  border: 2px solid rgba(220, 38, 38, 0.3);
-  border-radius: 25px;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(25px);
+  border: 3px solid rgba(220, 38, 38, 0.4);
+  border-radius: 30px;
   box-shadow: 
-    0 25px 50px rgba(0, 0, 0, 0.5),
-    0 0 50px rgba(220, 38, 38, 0.3);
+    0 30px 60px rgba(0, 0, 0, 0.6),
+    0 0 60px rgba(220, 38, 38, 0.4),
+    0 0 120px rgba(220, 38, 38, 0.2);
 }
 
-/* Legendary progress bars */
+/* 🎸 LEGENDARY PROGRESS BARS */
 .progress-epic {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 15px;
   overflow: hidden;
   position: relative;
+  border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .progress-epic::before {
@@ -724,7 +773,7 @@ body::after {
   left: 0;
   height: 100%;
   background: linear-gradient(90deg, #dc2626, #f97316, #eab308);
-  border-radius: 10px;
+  border-radius: 15px;
   animation: progressFill 2s ease-in-out infinite;
 }
 
@@ -733,14 +782,14 @@ body::after {
   50% { width: 100%; }
 }
 
-/* Epic emoji animations */
+/* 🔥 EPIC EMOJI ANIMATIONS */
 .emoji-bounce {
   animation: emojiBounce 2s ease-in-out infinite;
 }
 
 @keyframes emojiBounce {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-10px) scale(1.1); }
+  0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+  50% { transform: translateY(-15px) scale(1.2) rotate(5deg); }
 }
 
 .emoji-rotate {
@@ -758,10 +807,10 @@ body::after {
 
 @keyframes emojiPulse {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.2); }
+  50% { transform: scale(1.3); }
 }
 
-/* Epic entrance animations */
+/* 🎸 EPIC ENTRANCE ANIMATIONS */
 .entrance-slide-up {
   animation: entranceSlideUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
@@ -769,7 +818,7 @@ body::after {
 @keyframes entranceSlideUp {
   from {
     opacity: 0;
-    transform: translateY(50px) scale(0.8);
+    transform: translateY(60px) scale(0.7);
   }
   to {
     opacity: 1;
@@ -784,7 +833,7 @@ body::after {
 @keyframes entranceSlideDown {
   from {
     opacity: 0;
-    transform: translateY(-50px) scale(0.8);
+    transform: translateY(-60px) scale(0.7);
   }
   to {
     opacity: 1;
@@ -799,7 +848,7 @@ body::after {
 @keyframes entranceZoomIn {
   from {
     opacity: 0;
-    transform: scale(0.5) rotate(-10deg);
+    transform: scale(0.4) rotate(-15deg);
   }
   to {
     opacity: 1;
@@ -807,16 +856,17 @@ body::after {
   }
 }
 
-/* Epic hover effects */
+/* 🔥 EPIC HOVER EFFECTS */
 .hover-lift {
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .hover-lift:hover {
-  transform: translateY(-8px) scale(1.05);
+  transform: translateY(-12px) scale(1.08);
   box-shadow: 
-    0 20px 40px rgba(0, 0, 0, 0.4),
-    0 0 30px rgba(220, 38, 38, 0.3);
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(220, 38, 38, 0.4),
+    0 0 80px rgba(220, 38, 38, 0.2);
 }
 
 .hover-glow {
@@ -825,8 +875,9 @@ body::after {
 
 .hover-glow:hover {
   box-shadow: 
-    0 0 20px rgba(220, 38, 38, 0.4),
-    0 0 40px rgba(220, 38, 38, 0.2);
+    0 0 30px rgba(220, 38, 38, 0.6),
+    0 0 60px rgba(220, 38, 38, 0.4),
+    0 0 90px rgba(220, 38, 38, 0.2);
 }
 
 .hover-shake {
@@ -834,22 +885,22 @@ body::after {
 }
 
 .hover-shake:hover {
-  animation: shake 0.5s ease-in-out;
+  animation: shake 0.6s ease-in-out;
 }
 
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
 }
 
-/* Epic text effects */
+/* 🎸 EPIC TEXT EFFECTS */
 .text-glow {
-  text-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
+  text-shadow: 0 0 20px rgba(220, 38, 38, 0.8);
 }
 
 .text-shimmer {
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
   -webkit-background-clip: text;
@@ -861,7 +912,7 @@ body::after {
   100% { background-position: 200% 0; }
 }
 
-/* Epic loading states */
+/* 🔥 EPIC LOADING STATES */
 .loading-dots {
   display: inline-block;
 }
@@ -878,7 +929,7 @@ body::after {
   80%, 100% { content: '...'; }
 }
 
-/* Epic focus states */
+/* 🎸 EPIC FOCUS STATES */
 .focus-ring {
   transition: all 0.3s ease;
 }
@@ -886,12 +937,13 @@ body::after {
 .focus-ring:focus {
   outline: none;
   box-shadow: 
-    0 0 0 3px rgba(220, 38, 38, 0.3),
-    0 0 20px rgba(220, 38, 38, 0.2);
-  transform: scale(1.02);
+    0 0 0 4px rgba(220, 38, 38, 0.4),
+    0 0 30px rgba(220, 38, 38, 0.3),
+    0 0 60px rgba(220, 38, 38, 0.1);
+  transform: scale(1.03);
 }
 
-/* Epic responsive animations */
+/* 🔥 EPIC RESPONSIVE ANIMATIONS */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
@@ -900,7 +952,7 @@ body::after {
   }
 }
 
-/* Epic print styles */
+/* 🎸 EPIC PRINT STYLES */
 @media print {
   .neon-glow,
   .pulse-glow,
