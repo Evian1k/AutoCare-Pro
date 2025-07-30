@@ -34,9 +34,25 @@ const Message = sequelize.define('Message', {
   isAutoReply: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
+  },
+  messageType: {
+    type: DataTypes.ENUM('text', 'payment_request', 'service_request', 'support'),
+    defaultValue: 'text'
+  },
+  metadata: {
+    type: DataTypes.JSON,
+    allowNull: true
   }
 }, {
-  tableName: 'messages'
+  tableName: 'messages',
+  hooks: {
+    beforeCreate: (message) => {
+      // Ensure conversationId is set
+      if (!message.conversationId) {
+        message.conversationId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      }
+    }
+  }
 });
 
 module.exports = Message;

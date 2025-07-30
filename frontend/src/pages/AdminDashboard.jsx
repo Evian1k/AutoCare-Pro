@@ -11,6 +11,7 @@ import AdminMessages from '@/components/admin/AdminMessages';
 import TruckDispatch from '@/components/admin/TruckDispatch';
 import AddTruckForm from '@/components/admin/AddTruckForm';
 import PaymentForm from '@/components/PaymentForm';
+import PaymentManagement from '@/components/admin/PaymentManagement';
 import GoogleMap from '@/components/GoogleMap';
 import { useSocket } from '@/contexts/SocketContext';
 import { Wrench, MessageSquare, Truck, CreditCard, MapPin, Plus } from 'lucide-react';
@@ -120,38 +121,7 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="payments">
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-white mb-6">Payment Management</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <PaymentForm 
-                  onPaymentSuccess={handlePaymentSuccess}
-                />
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-white">Recent Payment Notifications</h3>
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
-                    {notifications
-                      .filter(notif => notif.type === 'payment')
-                      .slice(0, 10)
-                      .map(notif => (
-                        <div key={notif.id} className="p-3 bg-black/30 rounded-lg border border-red-900/30">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h4 className="font-medium text-white">{notif.title}</h4>
-                              <p className="text-sm text-gray-300">{notif.message}</p>
-                            </div>
-                            <button
-                              onClick={() => removeNotification(notif.id)}
-                              className="text-gray-400 hover:text-white"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              </div>
-            </div>
+            <PaymentManagement />
           </TabsContent>
 
           <TabsContent value="locations">

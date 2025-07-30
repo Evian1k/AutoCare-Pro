@@ -12,6 +12,18 @@ export const useMessages = () => {
   return context;
 };
 
+// Helper function to format date properly
+const formatMessageDate = (date) => {
+  if (!date) return 'Invalid Date';
+  try {
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return 'Invalid Date';
+    return d.toISOString();
+  } catch (error) {
+    return 'Invalid Date';
+  }
+};
+
 // Helper functions for local storage backup (fallback)
 const getLocalConversations = () => {
   const conversations = {};
@@ -48,7 +60,6 @@ const saveUserToMessageList = (user) => {
   return existingUsers;
 };
 
-
 export const MessageProvider = ({ children }) => {
   const { user } = useAuth();
   const [conversations, setConversations] = useState({});
@@ -64,10 +75,29 @@ export const MessageProvider = ({ children }) => {
       
       if (user.isAdmin) {
         // Admin: Load all conversations
-        const response = await apiService.getConversations();
+        const response = await apiService.request('/messages');
         if (response.success) {
-          setConversations(response.data || {});
-          setUsersWithMessages(response.users || []);
+          // Group messages by conversation
+          const groupedMessages = {};
+          const users = new Set();
+          
+          response.data.forEach(message => {
+            const conversationId = message.conversationId;
+            if (!groupedMessages[conversationId]) {
+              groupedMessages[conversationId] = [];
+            }
+            groupedMessages[conversationId].push({
+              ...message,
+              timestamp: formatMessageDate(message.createdAt)
+            });
+            
+            if (message.sender && message.sender.id) {
+              users.add(JSON.stringify(message.sender));
+            }
+          });
+          
+          setConversations(groupedMessages);
+          setUsersWithMessages(Array.from(users).map(u => JSON.parse(u)));
         } else {
           // Fallback to local storage
           const localConvos = getLocalConversations();
@@ -80,9 +110,15 @@ export const MessageProvider = ({ children }) => {
           setConversations({ [user.id]: user.messages });
         } else {
           // Load messages from API
-          const response = await apiService.getMessages();
+          const response = await apiService.request('/messages');
           if (response.success) {
-            setConversations({ [user.id]: response.data || [] });
+            const userMessages = response.data.filter(msg => 
+              msg.senderId === user.id || msg.recipientId === user.id
+            ).map(msg => ({
+              ...msg,
+              timestamp: formatMessageDate(msg.createdAt)
+            }));
+            setConversations({ [user.id]: userMessages });
           } else {
             // Fallback to local storage
             const savedMessages = localStorage.getItem(`autocare_messages_${user.id}`);
@@ -127,14 +163,23 @@ export const MessageProvider = ({ children }) => {
       // Send message to backend
       const messageData = {
         text: text,
-        recipientId: user.isAdmin ? null : undefined // Admin needs to specify recipient
+        recipientId: user.isAdmin ? null : undefined, // Admin needs to specify recipient
+        messageType: 'support'
       };
       
-      const response = await apiService.sendMessage(messageData);
+      const response = await apiService.request('/messages', {
+        method: 'POST',
+        body: JSON.stringify(messageData)
+      });
       
       if (response.success) {
         // Update local state with the sent message
-        const sentMessage = response.data;
+        const sentMessage = {
+          ...response.data,
+          timestamp: formatMessageDate(response.data.createdAt),
+          sender: user.isAdmin ? 'admin' : 'user'
+        };
+        
         const conversationId = user.isAdmin ? sentMessage.recipient : user.id;
         
         const currentMessages = conversations[conversationId] || [];
@@ -147,10 +192,15 @@ export const MessageProvider = ({ children }) => {
         
         // If auto-reply was sent, add it to state
         if (response.autoReply) {
-          const messagesWithReply = [...updatedMessages, response.autoReply];
+          const autoReplyMessage = {
+            ...response.autoReply,
+            timestamp: formatMessageDate(response.autoReply.createdAt),
+            sender: 'admin'
+          };
+          const messagesWithReply = [...updatedMessages, autoReplyMessage];
           const finalConversations = { ...conversations, [conversationId]: messagesWithReply };
           setConversations(finalConversations);
-          saveMessageLocally(response.autoReply, conversationId);
+          saveMessageLocally(autoReplyMessage, conversationId);
         }
         
         // Update user list for admin view
@@ -191,14 +241,22 @@ export const MessageProvider = ({ children }) => {
 
     try {
       // Send message to backend
-      const response = await apiService.sendMessage({
-        text: text,
-        recipientId: userId
+      const response = await apiService.request('/messages/admin/reply', {
+        method: 'POST',
+        body: JSON.stringify({
+          text: text,
+          originalMessageId: userId // This should be the original message ID
+        })
       });
       
       if (response.success) {
         // Update local state with the sent message
-        const sentMessage = response.data;
+        const sentMessage = {
+          ...response.data,
+          timestamp: formatMessageDate(response.data.createdAt),
+          sender: 'admin'
+        };
+
         const userMessages = conversations[userId] || [];
         const updatedMessages = [...userMessages, sentMessage];
         const newConversations = { ...conversations, [userId]: updatedMessages };
@@ -229,7 +287,7 @@ export const MessageProvider = ({ children }) => {
     }
   };
 
-  const refreshMessages = () => {
+  const refreshUserList = () => {
     loadMessages();
   };
 
@@ -239,7 +297,7 @@ export const MessageProvider = ({ children }) => {
     usersWithMessages,
     sendMessage,
     sendMessageToUser,
-    refreshMessages,
+    refreshUserList,
     loading,
   };
 

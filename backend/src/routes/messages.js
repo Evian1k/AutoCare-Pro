@@ -3,22 +3,80 @@ const { body, validationResult } = require('express-validator');
 const Message = require('../models/Message');
 const User = require('../models/User');
 const { authenticateToken } = require('../middleware/auth');
+const { sequelize } = require('../config/database');
 const router = express.Router();
+
+// Helper function to format date properly
+const formatMessageDate = (date) => {
+  if (!date) return 'Invalid Date';
+  try {
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return 'Invalid Date';
+    return d.toISOString();
+  } catch (error) {
+    return 'Invalid Date';
+  }
+};
+
+// Helper function to add auto-reply for user messages
+const addAutoReply = async (originalMessage) => {
+  try {
+    const autoReply = await Message.create({
+      text: "Thank you for your message. We will help you with your service booking.",
+      senderId: 1, // Admin ID
+      recipientId: originalMessage.senderId,
+      conversationId: originalMessage.conversationId,
+      senderType: 'admin',
+      isRead: false,
+      isAutoReply: true
+    });
+    return autoReply;
+  } catch (error) {
+    console.error('Auto-reply creation error:', error);
+    return null;
+  }
+};
 
 // @route   GET /api/v1/messages
 // @desc    Get all messages for the authenticated user
 // @access  Private
 router.get('/', authenticateToken, async (req, res) => {
   try {
-    // For now, return all messages (in production, filter by user)
-    const messages = await Message.findAll({
-      order: [['createdAt', 'DESC']],
-      limit: 50
-    });
+    let messages;
+    
+    if (req.user.role === 'admin') {
+      // Admin: Get all messages from users
+      messages = await Message.findAll({
+        where: {
+          senderType: 'user'
+        },
+        order: [['createdAt', 'DESC']],
+        limit: 100
+      });
+    } else {
+      // User: Get their messages and admin replies
+      messages = await Message.findAll({
+        where: {
+          [sequelize.Op.or]: [
+            { senderId: req.user.id },
+            { recipientId: req.user.id }
+          ]
+        },
+        order: [['createdAt', 'DESC']],
+        limit: 100
+      });
+    }
+
+    // Format dates properly
+    const formattedMessages = messages.map(message => ({
+      ...message.toJSON(),
+      createdAt: formatMessageDate(message.createdAt),
+      updatedAt: formatMessageDate(message.updatedAt)
+    }));
 
     res.json({
       success: true,
-      data: messages
+      data: formattedMessages
     });
   } catch (error) {
     console.error('Error fetching messages:', error);
@@ -62,15 +120,32 @@ router.post('/', authenticateToken, [
       text,
       senderId: req.user.id,
       recipientId: recipientId || null,
-      conversationId: conversationId || `conv_${Date.now()}`,
+      conversationId: conversationId || `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       senderType: req.user.role === 'admin' ? 'admin' : 'user',
       isRead: false
     });
 
+    // If user sends message, add auto-reply
+    let autoReply = null;
+    if (req.user.role !== 'admin') {
+      autoReply = await addAutoReply(message);
+    }
+
+    const responseData = {
+      ...message.toJSON(),
+      createdAt: formatMessageDate(message.createdAt),
+      updatedAt: formatMessageDate(message.updatedAt)
+    };
+
     res.status(201).json({
       success: true,
       message: 'Message sent successfully',
-      data: message
+      data: responseData,
+      autoReply: autoReply ? {
+        ...autoReply.toJSON(),
+        createdAt: formatMessageDate(autoReply.createdAt),
+        updatedAt: formatMessageDate(autoReply.updatedAt)
+      } : null
     });
   } catch (error) {
     console.error('Error sending message:', error);
@@ -86,6 +161,13 @@ router.post('/', authenticateToken, [
 // @access  Private (Admin only)
 router.get('/admin', authenticateToken, async (req, res) => {
   try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin access required'
+      });
+    }
+
     // Get all messages sent to admins (where recipientId is null or admin)
     const messages = await Message.findAll({
       where: {
@@ -95,9 +177,16 @@ router.get('/admin', authenticateToken, async (req, res) => {
       limit: 100
     });
 
+    // Format dates properly
+    const formattedMessages = messages.map(message => ({
+      ...message.toJSON(),
+      createdAt: formatMessageDate(message.createdAt),
+      updatedAt: formatMessageDate(message.updatedAt)
+    }));
+
     res.json({
       success: true,
-      data: messages
+      data: formattedMessages
     });
   } catch (error) {
     console.error('Error fetching admin messages:', error);
@@ -121,6 +210,13 @@ router.post('/admin/reply', authenticateToken, [
     .withMessage('Original message ID is required')
 ], async (req, res) => {
   try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin access required'
+      });
+    }
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -143,7 +239,7 @@ router.post('/admin/reply', authenticateToken, [
     // Create admin reply
     const reply = await Message.create({
       text,
-      senderId: 1, // Admin ID (should come from JWT)
+      senderId: req.user.id,
       recipientId: originalMessage.senderId,
       conversationId: originalMessage.conversationId,
       senderType: 'admin',
@@ -153,10 +249,16 @@ router.post('/admin/reply', authenticateToken, [
     // Mark original message as read
     await originalMessage.update({ isRead: true });
 
+    const responseData = {
+      ...reply.toJSON(),
+      createdAt: formatMessageDate(reply.createdAt),
+      updatedAt: formatMessageDate(reply.updatedAt)
+    };
+
     res.status(201).json({
       success: true,
       message: 'Reply sent successfully',
-      data: reply
+      data: responseData
     });
   } catch (error) {
     console.error('Error sending admin reply:', error);
@@ -202,22 +304,77 @@ router.put('/:id/read', authenticateToken, async (req, res) => {
 // @access  Private
 router.get('/conversations', authenticateToken, async (req, res) => {
   try {
-    // Get unique conversation IDs
-    const conversations = await Message.findAll({
-      attributes: ['conversationId'],
-      group: ['conversationId'],
-      order: [['createdAt', 'DESC']]
-    });
+    let conversations;
+    
+    if (req.user.role === 'admin') {
+      // Admin: Get all conversations with users
+      conversations = await Message.findAll({
+        attributes: ['conversationId', 'senderId', 'createdAt'],
+        where: {
+          senderType: 'user'
+        },
+        group: ['conversationId'],
+        order: [['createdAt', 'DESC']]
+      });
+    } else {
+      // User: Get their conversations
+      conversations = await Message.findAll({
+        attributes: ['conversationId'],
+        where: {
+          [sequelize.Op.or]: [
+            { senderId: req.user.id },
+            { recipientId: req.user.id }
+          ]
+        },
+        group: ['conversationId'],
+        order: [['createdAt', 'DESC']]
+      });
+    }
 
     res.json({
       success: true,
-      data: conversations.map(conv => conv.conversationId)
+      data: conversations.map(conv => ({
+        ...conv.toJSON(),
+        createdAt: formatMessageDate(conv.createdAt)
+      }))
     });
   } catch (error) {
     console.error('Error fetching conversations:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching conversations'
+    });
+  }
+});
+
+// @route   GET /api/v1/messages/conversation/:conversationId
+// @desc    Get messages for a specific conversation
+// @access  Private
+router.get('/conversation/:conversationId', authenticateToken, async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    
+    const messages = await Message.findAll({
+      where: { conversationId },
+      order: [['createdAt', 'ASC']]
+    });
+
+    // Format dates properly
+    const formattedMessages = messages.map(message => ({
+      ...message.toJSON(),
+      createdAt: formatMessageDate(message.createdAt),
+      updatedAt: formatMessageDate(message.updatedAt)
+    }));
+
+    res.json({
+      success: true,
+      data: formattedMessages
+    });
+  } catch (error) {
+    console.error('Error fetching conversation:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching conversation'
     });
   }
 });

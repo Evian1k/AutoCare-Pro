@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { useService } from '@/contexts/ServiceContext';
 import { useToast } from '@/components/ui/use-toast';
+import DarajaPaymentForm from '@/components/DarajaPaymentForm';
 
 const ServiceRequest = () => {
   const navigate = useNavigate();
@@ -28,6 +29,8 @@ const ServiceRequest = () => {
     contactNumber: ''
   });
   const [loading, setLoading] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
+  const [selectedService, setSelectedService] = useState(null);
 
   const handleChange = (e) => {
     setFormData(prev => ({
@@ -48,12 +51,9 @@ const ServiceRequest = () => {
     setLoading(true);
 
     try {
-      const request = createServiceRequest(formData);
-      toast({
-        title: "Request Submitted!",
-        description: `Your ${formData.serviceType} request has been submitted successfully. Request ID: ${request.id}`,
-      });
-      navigate('/dashboard');
+      // Show payment form instead of directly submitting
+      setSelectedService(formData);
+      setShowPayment(true);
     } catch (error) {
       toast({
         title: "Submission Failed",
@@ -63,6 +63,31 @@ const ServiceRequest = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePaymentSuccess = async (paymentData) => {
+    try {
+      const request = createServiceRequest(selectedService);
+      toast({
+        title: "Request Submitted!",
+        description: `Your ${selectedService.serviceType} request has been submitted successfully. Payment completed.`,
+      });
+      navigate('/dashboard');
+    } catch (error) {
+      toast({
+        title: "Submission Failed",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handlePaymentError = (error) => {
+    toast({
+      title: "Payment Failed",
+      description: error || "Payment could not be processed. Please try again.",
+      variant: "destructive",
+    });
   };
 
   const getServiceIcon = (serviceType) => {
@@ -344,6 +369,37 @@ const ServiceRequest = () => {
             </Card>
           </motion.div>
         </div>
+
+        {/* Payment Modal */}
+        {showPayment && selectedService && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="w-full max-w-md"
+            >
+              <div className="relative">
+                <Button
+                  onClick={() => setShowPayment(false)}
+                  variant="outline"
+                  size="sm"
+                  className="absolute top-4 right-4 z-10 border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                >
+                  ×
+                </Button>
+                <DarajaPaymentForm
+                  onPaymentSuccess={handlePaymentSuccess}
+                  onPaymentError={handlePaymentError}
+                  serviceType={selectedService.serviceType}
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
       </div>
     </div>
   );

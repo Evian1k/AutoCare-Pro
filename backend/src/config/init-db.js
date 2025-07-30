@@ -1,5 +1,8 @@
 const { sequelize } = require('./database');
 const User = require('../models/User');
+const Payment = require('../models/Payment');
+const BankAccount = require('../models/BankAccount');
+const Message = require('../models/Message');
 
 const initializeDatabase = async () => {
   try {
@@ -22,6 +25,23 @@ const initializeDatabase = async () => {
         isActive: true
       });
       console.log('✅ Default admin user created');
+    }
+
+    // Create default bank account if it doesn't exist
+    const defaultBankAccount = await BankAccount.findOne({ where: { isDefault: true } });
+    
+    if (!defaultBankAccount) {
+      await BankAccount.create({
+        accountName: 'AutoCare Pro Business Account',
+        accountNumber: '1234567890',
+        bankName: 'Sample Bank',
+        bankCode: 'SB001',
+        accountType: 'business',
+        isDefault: true,
+        isActive: true,
+        adminNotes: 'Default business account for receiving payments'
+      });
+      console.log('✅ Default bank account created');
     }
     
     console.log('🎉 Database setup complete!');
