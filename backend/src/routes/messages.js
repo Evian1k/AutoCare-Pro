@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { Message } = require('../models');
-const auth = require('../middleware/auth');
+const { authenticateToken } = require('../middleware/auth');
 
 // GET /api/v1/messages - Get all messages for a user
-router.get('/', auth, async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
   try {
     const messages = await Message.findAll({
       where: { 
@@ -34,7 +34,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // POST /api/v1/messages - Send a message
-router.post('/', auth, async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
   try {
     const { receiverId, content, type = 'text' } = req.body;
     
@@ -67,7 +67,7 @@ router.post('/', auth, async (req, res) => {
 });
 
 // PUT /api/v1/messages/:id/read - Mark message as read
-router.put('/:id/read', auth, async (req, res) => {
+router.put('/:id/read', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -104,7 +104,7 @@ router.put('/:id/read', auth, async (req, res) => {
 });
 
 // GET /api/v1/messages/unread - Get unread message count
-router.get('/unread', auth, async (req, res) => {
+router.get('/unread', authenticateToken, async (req, res) => {
   try {
     const count = await Message.count({
       where: { 

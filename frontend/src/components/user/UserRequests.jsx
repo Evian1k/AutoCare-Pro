@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
-const UserRequests = ({ userRequests }) => {
+const UserRequests = ({ userRequests = [] }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'pending': return 'status-pending';

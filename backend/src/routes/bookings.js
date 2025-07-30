@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { Booking } = require('../models');
-const auth = require('../middleware/auth');
+const { authenticateToken } = require('../middleware/auth');
 
 // GET /api/v1/bookings - Get all bookings for a user
-router.get('/', auth, async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
   try {
     const bookings = await Booking.findAll({
       where: { userId: req.user.id },
@@ -25,7 +25,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // POST /api/v1/bookings - Create a new booking
-router.post('/', auth, async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
   try {
     const { serviceType, description, location, vehicleInfo, urgency } = req.body;
     
@@ -61,7 +61,7 @@ router.post('/', auth, async (req, res) => {
 });
 
 // PUT /api/v1/bookings/:id - Update a booking
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { serviceType, description, location, vehicleInfo, urgency } = req.body;
@@ -101,7 +101,7 @@ router.put('/:id', auth, async (req, res) => {
 });
 
 // DELETE /api/v1/bookings/:id - Cancel a booking
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -132,7 +132,7 @@ router.delete('/:id', auth, async (req, res) => {
 });
 
 // GET /api/v1/bookings/:id - Get a specific booking
-router.get('/:id', auth, async (req, res) => {
+router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     

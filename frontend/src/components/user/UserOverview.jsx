@@ -7,9 +7,9 @@ import { Wrench, Car, Bell, Plus, Calendar, Settings, Truck } from 'lucide-react
 import { Badge } from '@/components/ui/badge';
 import { useService } from '@/contexts/ServiceContext';
 
-const UserOverview = ({ userRequests, unreadNotifications, user }) => {
-  const { vehicles } = useService();
-  const userVehicles = vehicles.filter(v => v.userId === user.id);
+const UserOverview = ({ userRequests = [], unreadNotifications = [], user }) => {
+  const { vehicles = [] } = useService();
+  const userVehicles = vehicles.filter(v => v.userId === user?.id) || [];
 
   const quickActionButtons = [
     { to: "/request-service", icon: <Plus className="w-6 h-6" />, label: "New Request", isLink: true },

@@ -192,7 +192,7 @@ const PaymentManagement = () => {
 
   const getPaymentMethodIcon = (method) => {
     const icons = {
-      mobile_money: Phone,
+      card: CreditCard,
       bank_transfer: Building,
       paypal: CreditCard,
       mock: DollarSign

@@ -25,6 +25,8 @@ const locationRoutes = require('./src/routes/locations');
 const paymentRoutes = require('./src/routes/payments');
 const bankAccountRoutes = require('./src/routes/bank-accounts');
 const darajaRoutes = require('./src/routes/daraja');
+const notificationRoutes = require('./src/routes/notifications');
+const adminBookingRoutes = require('./src/routes/admin-bookings');
 
 // Import middleware
 const { authenticateToken } = require('./src/middleware/auth');
@@ -118,6 +120,7 @@ app.use(`/api/${apiVersion}/locations`, authenticateToken, locationRoutes);
 app.use(`/api/${apiVersion}/payments`, paymentRoutes);
 app.use(`/api/${apiVersion}/bank-accounts`, authenticateToken, bankAccountRoutes);
 app.use(`/api/${apiVersion}/daraja`, darajaRoutes);
+app.use(`/api/${apiVersion}/notifications`, authenticateToken, notificationRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

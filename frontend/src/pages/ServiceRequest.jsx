@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { useService } from '@/contexts/ServiceContext';
 import { useToast } from '@/components/ui/use-toast';
-import DarajaPaymentForm from '@/components/DarajaPaymentForm';
+import PaymentForm from '@/components/PaymentForm';
 
 const ServiceRequest = () => {
   const navigate = useNavigate();
@@ -391,10 +391,9 @@ const ServiceRequest = () => {
                 >
                   ×
                 </Button>
-                <DarajaPaymentForm
+                <PaymentForm
                   onPaymentSuccess={handlePaymentSuccess}
                   onPaymentError={handlePaymentError}
-                  serviceType={selectedService.serviceType}
                 />
               </div>
             </motion.div>

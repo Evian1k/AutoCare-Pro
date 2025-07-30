@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { Notification } = require('../models');
-const auth = require('../middleware/auth');
+const { authenticateToken } = require('../middleware/auth');
 
 // GET /api/v1/notifications - Get all notifications for a user
-router.get('/', auth, async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
   try {
     const notifications = await Notification.findAll({
       where: { userId: req.user.id },
@@ -25,7 +25,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // POST /api/v1/notifications - Create a notification (admin only)
-router.post('/', auth, async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
   try {
     const { userId, title, message, type = 'info', data } = req.body;
     
@@ -64,7 +64,7 @@ router.post('/', auth, async (req, res) => {
 });
 
 // PUT /api/v1/notifications/:id/read - Mark notification as read
-router.put('/:id/read', auth, async (req, res) => {
+router.put('/:id/read', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -95,7 +95,7 @@ router.put('/:id/read', auth, async (req, res) => {
 });
 
 // PUT /api/v1/notifications/read-all - Mark all notifications as read
-router.put('/read-all', auth, async (req, res) => {
+router.put('/read-all', authenticateToken, async (req, res) => {
   try {
     await Notification.update(
       { read: true },
@@ -116,7 +116,7 @@ router.put('/read-all', auth, async (req, res) => {
 });
 
 // GET /api/v1/notifications/unread - Get unread notification count
-router.get('/unread', auth, async (req, res) => {
+router.get('/unread', authenticateToken, async (req, res) => {
   try {
     const count = await Notification.count({
       where: { 
@@ -139,7 +139,7 @@ router.get('/unread', auth, async (req, res) => {
 });
 
 // DELETE /api/v1/notifications/:id - Delete a notification
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     

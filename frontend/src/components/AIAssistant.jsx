@@ -39,7 +39,7 @@ const AIAssistant = ({ isOnline = false, onMessage }) => {
     ],
     payment: [
       "I can help you with payment processing! What payment method do you prefer?",
-      "Let me guide you through the payment process. We accept M-Pesa and other methods.",
+      "Let me guide you through the payment process. We accept credit/debit cards and bank transfers.",
       "I'll assist you with your payment. What amount do you need to pay?"
     ],
     general: [

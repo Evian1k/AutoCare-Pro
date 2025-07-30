@@ -28,7 +28,7 @@ import UserMessages from '@/components/user/UserMessages';
 import LocationSharing from '@/components/user/LocationSharing';
 import PaymentForm from '@/components/PaymentForm';
 import GoogleMap from '@/components/GoogleMap';
-import { api } from '@/services/api';
+import { apiService } from '@/services/api';
 
 const UserDashboard = () => {
   const { user, logout } = useAuth();
@@ -78,21 +78,36 @@ const UserDashboard = () => {
       setLoading(true);
       
       // Load requests
-      const requestsResponse = await api.get('/bookings');
-      if (requestsResponse.data.success) {
-        setRequests(requestsResponse.data.data);
+      try {
+        const requestsResponse = await apiService.getBookings();
+        if (requestsResponse?.data?.success) {
+          setRequests(requestsResponse.data.data || []);
+        }
+      } catch (error) {
+        console.error('Error loading requests:', error);
+        setRequests([]);
       }
 
       // Load notifications
-      const notificationsResponse = await api.get('/notifications');
-      if (notificationsResponse.data.success) {
-        setNotifications(notificationsResponse.data.data);
+      try {
+        const notificationsResponse = await apiService.request('/notifications');
+        if (notificationsResponse?.data?.success) {
+          setNotifications(notificationsResponse.data.data || []);
+        }
+      } catch (error) {
+        console.error('Error loading notifications:', error);
+        setNotifications([]);
       }
 
       // Load messages
-      const messagesResponse = await api.get('/messages');
-      if (messagesResponse.data.success) {
-        setMessages(messagesResponse.data.data);
+      try {
+        const messagesResponse = await apiService.getMessages();
+        if (messagesResponse?.data?.success) {
+          setMessages(messagesResponse.data.data || []);
+        }
+      } catch (error) {
+        console.error('Error loading messages:', error);
+        setMessages([]);
       }
     } catch (error) {
       console.error('Error loading user data:', error);
@@ -126,7 +141,7 @@ const UserDashboard = () => {
 
   const handleNewRequest = async (requestData) => {
     try {
-      const response = await api.post('/bookings', requestData);
+      const response = await apiService.createBooking(requestData);
       if (response.data.success) {
         setRequests(prev => [response.data.data, ...prev]);
         setShowNewRequest(false);
@@ -148,7 +163,7 @@ const UserDashboard = () => {
 
   const handleSendMessage = async (messageData) => {
     try {
-      const response = await api.post('/messages', messageData);
+      const response = await apiService.sendMessage(messageData);
       if (response.data.success) {
         setMessages(prev => [response.data.data, ...prev]);
       }
@@ -159,7 +174,7 @@ const UserDashboard = () => {
 
   const handleMarkNotificationRead = async (notificationId) => {
     try {
-      await api.put(`/notifications/${notificationId}/read`);
+      await apiService.request(`/notifications/${notificationId}/read`, { method: 'PUT' });
       setNotifications(prev => 
         prev.map(notif => 
           notif.id === notificationId ? { ...notif, read: true } : notif
@@ -362,22 +377,30 @@ const UserDashboard = () => {
         </motion.div>
 
         {/* Tab Content */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-        >
-          {activeTab === 'overview' && (
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
+              <p className="text-gray-400">Loading your dashboard...</p>
+            </div>
+          </div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            {activeTab === 'overview' && (
             <UserOverview 
-              requests={requests}
-              notifications={notifications}
+              userRequests={requests}
+              unreadNotifications={notifications.filter(n => !n.read)}
               user={user}
               onNewRequest={() => setShowNewRequest(true)}
             />
           )}
           {activeTab === 'requests' && (
             <UserRequests 
-              requests={requests}
+              userRequests={requests}
               onNewRequest={() => setShowNewRequest(true)}
             />
           )}
@@ -393,8 +416,28 @@ const UserDashboard = () => {
           )}
           {activeTab === 'payments' && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-white mb-6">Make a Payment</h2>
-              <PaymentForm onPaymentSuccess={handlePaymentSuccess} />
+              <div className="bg-gray-900/50 backdrop-blur-sm rounded-xl p-6 border border-gray-800">
+                <h2 className="text-2xl font-bold text-white mb-6">Payment Options</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-white">Credit/Debit Card</h3>
+                    <p className="text-gray-400">Secure payment processing with major credit and debit cards.</p>
+                    <PaymentForm onPaymentSuccess={handlePaymentSuccess} />
+                  </div>
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-white">Bank Transfer</h3>
+                    <p className="text-gray-400">Direct bank transfer for larger payments or corporate accounts.</p>
+                    <div className="bg-gray-800/50 rounded-lg p-4">
+                      <h4 className="font-medium text-white mb-2">Bank Details:</h4>
+                      <div className="space-y-1 text-sm text-gray-300">
+                        <p><strong>Bank:</strong> AutoCare Pro Bank</p>
+                        <p><strong>Account:</strong> 1234567890</p>
+                        <p><strong>Reference:</strong> Your service request ID</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
           {activeTab === 'notifications' && (
@@ -410,6 +453,7 @@ const UserDashboard = () => {
             />
           )}
         </motion.div>
+          )}
       </div>
 
       {/* New Request Modal */}

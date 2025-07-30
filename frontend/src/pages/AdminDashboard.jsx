@@ -117,9 +117,9 @@ const AdminDashboard = () => {
   ]);
   
   const [paymentHistory, setPaymentHistory] = useState([
-    { id: 1, customer: 'Alice Johnson', amount: 5000, status: 'completed', method: 'M-Pesa', date: '2024-01-15', invoice: 'INV-001' },
+          { id: 1, customer: 'Alice Johnson', amount: 5000, status: 'completed', method: 'Card', date: '2024-01-15', invoice: 'INV-001' },
     { id: 2, customer: 'Bob Wilson', amount: 3500, status: 'pending', method: 'Card', date: '2024-01-14', invoice: 'INV-002' },
-    { id: 3, customer: 'Carol Davis', amount: 7200, status: 'failed', method: 'M-Pesa', date: '2024-01-13', invoice: 'INV-003' }
+          { id: 3, customer: 'Carol Davis', amount: 7200, status: 'failed', method: 'Bank Transfer', date: '2024-01-13', invoice: 'INV-003' }
   ]);
   
   const [auditLogs, setAuditLogs] = useState([
