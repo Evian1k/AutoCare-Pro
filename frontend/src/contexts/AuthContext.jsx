@@ -1,6 +1,29 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { ADMIN_CONFIG } from '@/lib/constants';
-import { apiService } from '@/services/api';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Alert, AlertDescription } from '../components/ui/alert';
+import { Badge } from '../components/ui/badge';
+import { 
+  User, 
+  Shield, 
+  Settings, 
+  LogOut, 
+  Key, 
+  Eye, 
+  EyeOff,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  Crown,
+  Users,
+  Car,
+  Wrench
+} from 'lucide-react';
+import { apiService } from '../services/api';
+import audioSystem from '../components/AudioSystem';
 
 const AuthContext = createContext();
 
@@ -12,282 +35,597 @@ export const useAuth = () => {
   return context;
 };
 
-  const ADMIN_USERS = ADMIN_CONFIG.EMAILS;
-
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [showLogin, setShowLogin] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
+  const [permissions, setPermissions] = useState({});
+  const [sessionTimeout, setSessionTimeout] = useState(null);
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      const savedToken = localStorage.getItem('autocare_token');
-      const savedUser = localStorage.getItem('autocare_user');
-      
-      console.log('🔄 Initializing auth...', { hasToken: !!savedToken, hasUser: !!savedUser });
-      
-      if (savedToken && savedUser) {
-        try {
-          // First, load from saved data immediately for better UX
-          const parsedUser = JSON.parse(savedUser);
-          if (parsedUser && parsedUser.id) {
-            console.log('📦 Loading user from localStorage:', parsedUser.email);
-            setUser(parsedUser);
-            apiService.setAuthToken(savedToken);
-          }
-
-          // Then verify token and get fresh data from backend
-          const verifyResponse = await apiService.verifyToken();
-          
-          if (verifyResponse.success) {
-            console.log('✅ Token verified, loading fresh profile...');
-            
-            try {
-              // Get complete profile with messages and requests
-              const profileResponse = await apiService.getProfile();
-              
-              if (profileResponse.success) {
-                console.log('📊 Profile loaded:', {
-                  user: profileResponse.data.user.email,
-                  messages: profileResponse.data.messages?.length || 0,
-                  bookings: profileResponse.data.bookings?.length || 0
-                });
-                
-                const userData = {
-                  ...profileResponse.data.user,
-                  token: savedToken,
-                  messages: profileResponse.data.messages || [],
-                  bookings: profileResponse.data.bookings || [],
-                  statistics: profileResponse.data.statistics || {}
-                };
-                
-                setUser(userData);
-                localStorage.setItem('autocare_user', JSON.stringify(userData));
-                console.log('💾 User data updated successfully');
-              } else {
-                console.warn('⚠️ Profile loading failed, using basic user data');
-                const userData = {
-                  ...verifyResponse.user,
-                  token: savedToken,
-                  messages: parsedUser?.messages || [],
-                  bookings: parsedUser?.bookings || [],
-                  statistics: parsedUser?.statistics || {}
-                };
-                setUser(userData);
-                localStorage.setItem('autocare_user', JSON.stringify(userData));
-              }
-            } catch (profileError) {
-              console.warn('⚠️ Profile request failed, keeping saved data:', profileError.message);
-              // Keep existing saved user data if profile loading fails
-              if (parsedUser && parsedUser.id) {
-                setUser(parsedUser);
-              }
-            }
-          } else {
-            console.warn('❌ Token verification failed');
-            localStorage.removeItem('autocare_token');
-            localStorage.removeItem('autocare_user');
-            setUser(null);
-          }
-        } catch (error) {
-          console.error('🚨 Auth initialization error:', error);
-          
-          // Fallback to saved user data if backend is unavailable
-          try {
-            const userData = JSON.parse(savedUser);
-            if (userData && userData.id) {
-              console.log('🔄 Using saved user data as fallback:', userData.email);
-              setUser(userData);
-              apiService.setAuthToken(savedToken);
-            } else {
-              console.warn('❌ Invalid saved data, clearing storage');
-              localStorage.removeItem('autocare_token');
-              localStorage.removeItem('autocare_user');
-              setUser(null);
-            }
-          } catch (parseError) {
-            console.error('🚨 Failed to parse saved user data:', parseError);
-            localStorage.removeItem('autocare_token');
-            localStorage.removeItem('autocare_user');
-            setUser(null);
-          }
-        }
-      } else {
-        console.log('ℹ️ No saved auth data found');
-        setUser(null);
-      }
-      
-      setLoading(false);
-      console.log('✅ Auth initialization complete');
-    };
-    
     initializeAuth();
+    audioSystem.initialize();
   }, []);
+
+  const initializeAuth = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        const userData = await validateToken(token);
+        if (userData) {
+          setUser(userData);
+          loadUserPermissions(userData);
+          startSessionTimer();
+          audioSystem.playSuccess();
+        } else {
+          localStorage.removeItem('token');
+        }
+      }
+    } catch (error) {
+      console.error('Auth initialization error:', error);
+      localStorage.removeItem('token');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const validateToken = async (token) => {
+    try {
+      const response = await apiService.request('/auth/validate', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.success) {
+        return response.user;
+      }
+      return null;
+    } catch (error) {
+      console.error('Token validation error:', error);
+      return null;
+    }
+  };
+
+  const loadUserPermissions = (userData) => {
+    const permissions = {
+      // Admin permissions
+      admin: {
+        canManageUsers: true,
+        canManageServices: true,
+        canManagePayments: true,
+        canViewAllMessages: true,
+        canManageBankAccounts: true,
+        canViewAnalytics: true,
+        canManageTrucks: true,
+        canApproveRequests: true,
+        canDeleteData: true,
+        canExportData: true
+      },
+      // User permissions
+      user: {
+        canRequestServices: true,
+        canViewOwnMessages: true,
+        canMakePayments: true,
+        canViewOwnHistory: true,
+        canUpdateProfile: true,
+        canShareLocation: true
+      }
+    };
+
+    const userPermissions = permissions[userData.role] || permissions.user;
+    setPermissions(userPermissions);
+  };
+
+  const startSessionTimer = () => {
+    // Clear existing timer
+    if (sessionTimeout) {
+      clearTimeout(sessionTimeout);
+    }
+
+    // Set new timer (24 hours)
+    const timeout = setTimeout(() => {
+      logout('Session expired. Please login again.');
+      audioSystem.playError();
+    }, 24 * 60 * 60 * 1000);
+
+    setSessionTimeout(timeout);
+  };
 
   const login = async (email, password) => {
     try {
-      setLoading(true);
-      
-      // Use backend API for login
-      const response = await apiService.login(email, password);
-      
+      setError('');
+      const response = await apiService.request('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password })
+      });
+
       if (response.success) {
-        // Set auth token for future requests
-        apiService.setAuthToken(response.token);
-        
-        // Get complete profile data after login
-        try {
-          const profileResponse = await apiService.getProfile();
-          
-          if (profileResponse.success) {
-            console.log('📊 Login: Profile loaded successfully:', {
-              user: profileResponse.data.user.email,
-              messages: profileResponse.data.messages?.length || 0,
-              bookings: profileResponse.data.bookings?.length || 0
-            });
-            
-            const userData = {
-              ...profileResponse.data.user,
-              token: response.token,
-              messages: profileResponse.data.messages || [],
-              bookings: profileResponse.data.bookings || [],
-              statistics: profileResponse.data.statistics || {}
-            };
-            
-            setUser(userData);
-            localStorage.setItem('autocare_token', response.token);
-            localStorage.setItem('autocare_user', JSON.stringify(userData));
-            console.log('💾 Login: Complete user data saved');
-            
-            return userData;
-          }
-        } catch (profileError) {
-          console.warn('⚠️ Could not load profile data after login:', profileError);
-        }
-        
-        // Fallback to basic user data
-        const userData = {
-          ...response.user,
-          token: response.token
-        };
-        
+        const { token, user: userData } = response;
+        localStorage.setItem('token', token);
         setUser(userData);
-        localStorage.setItem('autocare_token', response.token);
-        localStorage.setItem('autocare_user', JSON.stringify(userData));
-        
-        return userData;
+        loadUserPermissions(userData);
+        startSessionTimer();
+        setShowLogin(false);
+        audioSystem.playVictoryFanfare();
+        return { success: true };
       } else {
-        throw new Error(response.message || 'Login failed');
+        setError(response.message || 'Login failed');
+        audioSystem.playError();
+        return { success: false, message: response.message };
       }
     } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    } finally {
-      setLoading(false);
+      setError('Login failed. Please try again.');
+      audioSystem.playError();
+      return { success: false, message: 'Login failed' };
     }
   };
 
   const register = async (userData) => {
     try {
-      setLoading(true);
-      
-      // Use backend API for registration
-      const response = await apiService.register(userData);
-      
+      setError('');
+      const response = await apiService.request('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify(userData)
+      });
+
       if (response.success) {
-        const newUserData = {
-          ...response.user,
-          token: response.token
-        };
-        
-        // Set auth token for future requests
-        apiService.setAuthToken(response.token);
-        
-        // Save to state and localStorage
-        setUser(newUserData);
-        localStorage.setItem('autocare_token', response.token);
-        localStorage.setItem('autocare_user', JSON.stringify(newUserData));
-        
-        return newUserData;
+        const { token, user: newUser } = response;
+        localStorage.setItem('token', token);
+        setUser(newUser);
+        loadUserPermissions(newUser);
+        startSessionTimer();
+        setShowRegister(false);
+        audioSystem.playVictoryFanfare();
+        return { success: true };
       } else {
-        // Enhanced error handling for duplicate emails
-        const error = new Error(response.message || 'Registration failed');
-        error.code = response.code;
-        error.action = response.action;
-        error.userType = response.userType;
-        throw error;
+        setError(response.message || 'Registration failed');
+        audioSystem.playError();
+        return { success: false, message: response.message };
       }
     } catch (error) {
-      console.error('Registration error:', error);
-      
-      // Enhanced error handling for better user experience
-      if (error.message && error.message.includes('already been signed up')) {
-        const enhancedError = new Error(error.message);
-        enhancedError.code = 'EMAIL_ALREADY_EXISTS';
-        enhancedError.action = 'redirect_to_login';
-        throw enhancedError;
-      }
-      
-      throw error;
-    } finally {
-      setLoading(false);
+      setError('Registration failed. Please try again.');
+      audioSystem.playError();
+      return { success: false, message: 'Registration failed' };
     }
   };
 
-  const checkEmailAvailability = async (email) => {
-    try {
-      const response = await apiService.checkEmailAvailability(email);
-      return response;
-    } catch (error) {
-      console.error('Error checking email availability:', error);
-      return { success: false, available: true, message: 'Could not check email availability' };
-    }
-  };
-
-  const logout = () => {
+  const logout = (message = 'Logged out successfully') => {
+    localStorage.removeItem('token');
     setUser(null);
-    localStorage.removeItem('autocare_user');
-    localStorage.removeItem('autocare_token');
-    apiService.setAuthToken(null);
+    setPermissions({});
+    if (sessionTimeout) {
+      clearTimeout(sessionTimeout);
+      setSessionTimeout(null);
+    }
+    audioSystem.playNotification();
+    setError(message);
   };
 
-  const updateUser = async (updatedData) => {
-    if (user) {
-      try {
-        // Update user data on backend
-        const response = await apiService.updateProfile(updatedData);
-        
-        if (response.success) {
-          const newUserData = { ...user, ...response.user };
-          setUser(newUserData);
-          localStorage.setItem('autocare_user', JSON.stringify(newUserData));
-          return newUserData;
-        } else {
-          throw new Error(response.message || 'Update failed');
-        }
-      } catch (error) {
-        console.error('Update user error:', error);
-        // Fallback to local update
-        const newUserData = { ...user, ...updatedData };
-        setUser(newUserData);
-        localStorage.setItem('autocare_user', JSON.stringify(newUserData));
-        return newUserData;
+  const updateProfile = async (profileData) => {
+    try {
+      const response = await apiService.request('/auth/profile', {
+        method: 'PUT',
+        body: JSON.stringify(profileData)
+      });
+
+      if (response.success) {
+        setUser(response.user);
+        audioSystem.playSuccess();
+        return { success: true };
+      } else {
+        audioSystem.playError();
+        return { success: false, message: response.message };
       }
+    } catch (error) {
+      audioSystem.playError();
+      return { success: false, message: 'Profile update failed' };
     }
+  };
+
+  const changePassword = async (currentPassword, newPassword) => {
+    try {
+      const response = await apiService.request('/auth/change-password', {
+        method: 'POST',
+        body: JSON.stringify({ currentPassword, newPassword })
+      });
+
+      if (response.success) {
+        audioSystem.playSuccess();
+        return { success: true };
+      } else {
+        audioSystem.playError();
+        return { success: false, message: response.message };
+      }
+    } catch (error) {
+      audioSystem.playError();
+      return { success: false, message: 'Password change failed' };
+    }
+  };
+
+  const hasPermission = (permission) => {
+    return permissions[permission] || false;
+  };
+
+  const isAdmin = () => {
+    return user?.role === 'admin';
+  };
+
+  const isUser = () => {
+    return user?.role === 'user';
+  };
+
+  const canAccess = (requiredPermissions = []) => {
+    if (!user) return false;
+    if (isAdmin()) return true; // Admins have all permissions
+    return requiredPermissions.every(permission => hasPermission(permission));
+  };
+
+  const LoginModal = () => (
+    <AnimatePresence>
+      {showLogin && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="w-full max-w-md"
+          >
+            <Card className="epic-modal">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 gradient-text">
+                  <Key className="h-6 w-6" />
+                  Epic Login
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <LoginForm onClose={() => setShowLogin(false)} />
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
+  const RegisterModal = () => (
+    <AnimatePresence>
+      {showRegister && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="w-full max-w-md"
+          >
+            <Card className="epic-modal">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 gradient-text">
+                  <User className="h-6 w-6" />
+                  Epic Registration
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <RegisterForm onClose={() => setShowRegister(false)} />
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
+  const LoginForm = ({ onClose }) => {
+    const [formData, setFormData] = useState({ email: '', password: '' });
+    const [showPassword, setShowPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      setIsLoading(true);
+      
+      const result = await login(formData.email, formData.password);
+      
+      if (result.success) {
+        onClose();
+      }
+      
+      setIsLoading(false);
+    };
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <Alert variant="destructive" className="fade-in">
+            <XCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        <div>
+          <Label htmlFor="email" className="text-white">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            value={formData.email}
+            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+            className="form-input"
+            required
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="password" className="text-white">Password</Label>
+          <div className="relative">
+            <Input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              value={formData.password}
+              onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+              className="form-input pr-10"
+              required
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          <Button
+            type="submit"
+            className="flex-1 btn-epic"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <div className="loading-spinner mr-2"></div>
+                Logging In...
+              </>
+            ) : (
+              <>
+                <Key className="mr-2 h-4 w-4" />
+                Login
+              </>
+            )}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+          >
+            Cancel
+          </Button>
+        </div>
+
+        <div className="text-center">
+          <Button
+            type="button"
+            variant="link"
+            onClick={() => {
+              setShowLogin(false);
+              setShowRegister(true);
+            }}
+            className="text-blue-400 hover:text-blue-300"
+          >
+            Don't have an account? Register
+          </Button>
+        </div>
+      </form>
+    );
+  };
+
+  const RegisterForm = ({ onClose }) => {
+    const [formData, setFormData] = useState({
+      name: '',
+      email: '',
+      phone: '',
+      password: '',
+      confirmPassword: ''
+    });
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      
+      if (formData.password !== formData.confirmPassword) {
+        setError('Passwords do not match');
+        audioSystem.playError();
+        return;
+      }
+
+      setIsLoading(true);
+      
+      const result = await register(formData);
+      
+      if (result.success) {
+        onClose();
+      }
+      
+      setIsLoading(false);
+    };
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <Alert variant="destructive" className="fade-in">
+            <XCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        <div>
+          <Label htmlFor="name" className="text-white">Full Name</Label>
+          <Input
+            id="name"
+            type="text"
+            value={formData.name}
+            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+            className="form-input"
+            required
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="email" className="text-white">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            value={formData.email}
+            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+            className="form-input"
+            required
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="phone" className="text-white">Phone Number</Label>
+          <Input
+            id="phone"
+            type="tel"
+            value={formData.phone}
+            onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+            className="form-input"
+            required
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="password" className="text-white">Password</Label>
+          <div className="relative">
+            <Input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              value={formData.password}
+              onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+              className="form-input pr-10"
+              required
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </Button>
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="confirmPassword" className="text-white">Confirm Password</Label>
+          <div className="relative">
+            <Input
+              id="confirmPassword"
+              type={showConfirmPassword ? 'text' : 'password'}
+              value={formData.confirmPassword}
+              onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+              className="form-input pr-10"
+              required
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            >
+              {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          <Button
+            type="submit"
+            className="flex-1 btn-epic"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <div className="loading-spinner mr-2"></div>
+                Creating Account...
+              </>
+            ) : (
+              <>
+                <User className="mr-2 h-4 w-4" />
+                Register
+              </>
+            )}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+          >
+            Cancel
+          </Button>
+        </div>
+
+        <div className="text-center">
+          <Button
+            type="button"
+            variant="link"
+            onClick={() => {
+              setShowRegister(false);
+              setShowLogin(true);
+            }}
+            className="text-blue-400 hover:text-blue-300"
+          >
+            Already have an account? Login
+          </Button>
+        </div>
+      </form>
+    );
   };
 
   const value = {
     user,
+    loading,
+    error,
     login,
     register,
     logout,
-    loading,
-    updateUser,
-    checkEmailAvailability
+    updateProfile,
+    changePassword,
+    hasPermission,
+    isAdmin,
+    isUser,
+    canAccess,
+    setShowLogin,
+    setShowRegister,
+    permissions
   };
 
   return (
     <AuthContext.Provider value={value}>
       {children}
+      <LoginModal />
+      <RegisterModal />
     </AuthContext.Provider>
   );
 };
