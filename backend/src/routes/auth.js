@@ -65,6 +65,53 @@ router.get('/validate', async (req, res) => {
   }
 });
 
+// @route   GET /api/v1/auth/debug-user/:email
+// @desc    Debug user information (for development)
+// @access  Public
+router.get('/debug-user/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    
+    const user = await User.findOne({ where: { email } });
+    
+    if (!user) {
+      return res.json({
+        success: false,
+        message: 'User not found',
+        debug: {
+          email,
+          isAdminEmail: User.isAdminEmail(email),
+          adminData: User.getAdminByEmail(email)
+        }
+      });
+    }
+    
+    res.json({
+      success: true,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+        createdAt: user.createdAt
+      },
+      debug: {
+        isAdminEmail: User.isAdminEmail(email),
+        adminData: User.getAdminByEmail(email),
+        isAdmin: user.role === 'admin',
+        isActive: user.isActive
+      }
+    });
+  } catch (error) {
+    console.error('Debug user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Debug error'
+    });
+  }
+});
+
 // @route   POST /api/v1/auth/register
 // @desc    Register a new user with duplicate email protection
 // @access  Public
@@ -274,18 +321,33 @@ router.post('/login', [
     }
 
     const { email, password } = req.body;
-    console.log('Login attempt:', { email, isAdminEmail: User.isAdminEmail(email) });
+    console.log('🔐 Login attempt:', { 
+      email, 
+      isAdminEmail: User.isAdminEmail(email),
+      adminEmails: [
+        'emmanuel.evian@autocare.com',
+        'ibrahim.mohamud@autocare.com',
+        'joel.nganga@autocare.com',
+        'patience.karanja@autocare.com',
+        'joyrose.kinuthia@autocare.com',
+        'admin@autocare.com'
+      ]
+    });
 
     // Check if this is an admin login
     if (User.isAdminEmail(email)) {
-      console.log('Admin login detected for:', email);
+      console.log('👑 Admin login detected for:', email);
       
       // Verify admin password
       const adminPassword = process.env.ADMIN_PASSWORD || 'autocarpro12k@12k.wwc';
-      console.log('Password check:', { provided: password, expected: adminPassword, match: password === adminPassword });
+      console.log('🔑 Password check:', { 
+        provided: password, 
+        expected: adminPassword, 
+        match: password === adminPassword 
+      });
       
       if (password !== adminPassword) {
-        console.log('Admin password mismatch');
+        console.log('❌ Admin password mismatch');
         return res.status(401).json({
           success: false,
           message: 'Invalid admin credentials'
@@ -294,10 +356,10 @@ router.post('/login', [
 
       // Get admin data
       const adminData = User.getAdminByEmail(email);
-      console.log('Admin data:', adminData);
+      console.log('📋 Admin data:', adminData);
       
       if (!adminData) {
-        console.log('No admin data found for:', email);
+        console.log('❌ No admin data found for:', email);
         return res.status(401).json({
           success: false,
           message: 'Admin not found'
@@ -306,21 +368,40 @@ router.post('/login', [
 
       // Check if admin user exists in database, if not create one
       let adminUser = await User.findOne({ where: { email } });
-      console.log('Existing admin user:', adminUser ? 'Found' : 'Not found');
+      console.log('🔍 Existing admin user:', adminUser ? {
+        id: adminUser.id,
+        name: adminUser.name,
+        role: adminUser.role,
+        isActive: adminUser.isActive
+      } : 'Not found');
       
       if (!adminUser) {
-        console.log('Creating new admin user');
+        console.log('➕ Creating new admin user');
         adminUser = await User.create({
           name: adminData.name,
           email: email,
           password: adminPassword,
-          role: adminData.role
+          role: 'admin' // Explicitly set role to admin
         });
-        console.log('Admin user created:', adminUser.id);
+        console.log('✅ Admin user created:', adminUser.id);
+      } else {
+        // Update existing user to ensure they have admin role
+        if (adminUser.role !== 'admin') {
+          console.log('🔄 Updating user role from', adminUser.role, 'to admin');
+          await adminUser.update({ role: 'admin' });
+          adminUser.role = 'admin';
+        }
+        
+        // Ensure user is active
+        if (!adminUser.isActive) {
+          console.log('🔄 Activating admin user');
+          await adminUser.update({ isActive: true });
+          adminUser.isActive = true;
+        }
       }
 
       const token = generateToken(adminUser.id);
-      console.log('Admin login successful for:', email);
+      console.log('🎉 Admin login successful for:', email, 'Role:', adminUser.role);
 
       return res.json({
         success: true,
@@ -332,13 +413,14 @@ router.post('/login', [
           email: adminUser.email,
           phone: adminUser.phone,
           isAdmin: true,
-          role: adminUser.role,
+          role: 'admin', // Explicitly set to admin
           createdAt: adminUser.createdAt
         }
       });
     }
 
     // Regular user login
+    console.log('👤 Regular user login for:', email);
     const user = await User.findOne({ where: { email } });
     if (!user) {
       return res.status(401).json({
@@ -348,6 +430,13 @@ router.post('/login', [
         action: 'redirect_to_register'
       });
     }
+
+    console.log('🔍 Found user:', {
+      id: user.id,
+      name: user.name,
+      role: user.role,
+      isActive: user.isActive
+    });
 
     // Check password
     const isMatch = await user.comparePassword(password);
@@ -367,6 +456,7 @@ router.post('/login', [
     }
 
     const token = generateToken(user.id);
+    console.log('✅ User login successful:', email, 'Role:', user.role);
 
     res.json({
       success: true,
@@ -384,7 +474,7 @@ router.post('/login', [
     });
 
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('❌ Login error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error during login'
