@@ -272,7 +272,7 @@ async (req, res) => {
         name: user.name,
         email: user.email,
         phone: user.phone,
-        isAdmin: false,
+        isAdmin: user.role === 'admin',
         role: user.role,
         createdAt: user.createdAt
       }

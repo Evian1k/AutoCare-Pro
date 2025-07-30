@@ -52,9 +52,35 @@ export const AuthProvider = ({ children }) => {
   const initializeAuth = async () => {
     try {
       const token = localStorage.getItem('token');
-      if (token) {
+      const savedUser = localStorage.getItem('autocare_user');
+      
+      if (token && savedUser) {
+        try {
+          const parsedUser = JSON.parse(savedUser);
+          const userData = await validateToken(token);
+          if (userData) {
+            // Use validated user data from server
+            localStorage.setItem('autocare_user', JSON.stringify(userData));
+            setUser(userData);
+            loadUserPermissions(userData);
+            startSessionTimer();
+            audioSystem.playSuccess();
+          } else {
+            // Token invalid, but try using saved user data if available
+            console.log('Token invalid, using saved user data');
+            setUser(parsedUser);
+            loadUserPermissions(parsedUser);
+          }
+        } catch (parseError) {
+          console.error('Error parsing saved user data:', parseError);
+          localStorage.removeItem('token');
+          localStorage.removeItem('autocare_user');
+        }
+      } else if (token) {
+        // Token exists but no saved user data, validate token
         const userData = await validateToken(token);
         if (userData) {
+          localStorage.setItem('autocare_user', JSON.stringify(userData));
           setUser(userData);
           loadUserPermissions(userData);
           startSessionTimer();
@@ -66,6 +92,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Auth initialization error:', error);
       localStorage.removeItem('token');
+      localStorage.removeItem('autocare_user');
     } finally {
       setLoading(false);
     }
@@ -146,6 +173,7 @@ export const AuthProvider = ({ children }) => {
       if (response.success) {
         const { token, user: userData } = response;
         localStorage.setItem('token', token);
+        localStorage.setItem('autocare_user', JSON.stringify(userData));
         setUser(userData);
         loadUserPermissions(userData);
         startSessionTimer();
@@ -175,6 +203,7 @@ export const AuthProvider = ({ children }) => {
       if (response.success) {
         const { token, user: newUser } = response;
         localStorage.setItem('token', token);
+        localStorage.setItem('autocare_user', JSON.stringify(newUser));
         setUser(newUser);
         loadUserPermissions(newUser);
         startSessionTimer();
@@ -195,6 +224,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = (message = 'Logged out successfully') => {
     localStorage.removeItem('token');
+    localStorage.removeItem('autocare_user');
     setUser(null);
     setPermissions({});
     if (sessionTimeout) {
