@@ -57,6 +57,32 @@ body::before {
   z-index: -1;
 }
 
+/* Legendary particle effects */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, #dc2626, transparent),
+    radial-gradient(2px 2px at 40px 70px, #ef4444, transparent),
+    radial-gradient(1px 1px at 90px 40px, #f97316, transparent),
+    radial-gradient(1px 1px at 130px 80px, #eab308, transparent),
+    radial-gradient(2px 2px at 160px 30px, #dc2626, transparent);
+  background-repeat: repeat;
+  background-size: 200px 100px;
+  animation: sparkle 20s linear infinite;
+  opacity: 0.3;
+  z-index: -1;
+}
+
+@keyframes sparkle {
+  0% { transform: translateY(0px); }
+  100% { transform: translateY(-100px); }
+}
+
 @keyframes epicPulse {
   0%, 100% { opacity: 0.3; }
   50% { opacity: 0.6; }
@@ -705,4 +731,181 @@ body::before {
 @keyframes progressFill {
   0%, 100% { width: 0%; }
   50% { width: 100%; }
+}
+
+/* Epic emoji animations */
+.emoji-bounce {
+  animation: emojiBounce 2s ease-in-out infinite;
+}
+
+@keyframes emojiBounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-10px) scale(1.1); }
+}
+
+.emoji-rotate {
+  animation: emojiRotate 3s linear infinite;
+}
+
+@keyframes emojiRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.emoji-pulse {
+  animation: emojiPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes emojiPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+/* Epic entrance animations */
+.entrance-slide-up {
+  animation: entranceSlideUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes entranceSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.entrance-slide-down {
+  animation: entranceSlideDown 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes entranceSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.entrance-zoom-in {
+  animation: entranceZoomIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes entranceZoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.5) rotate(-10deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* Epic hover effects */
+.hover-lift {
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.hover-lift:hover {
+  transform: translateY(-8px) scale(1.05);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    0 0 30px rgba(220, 38, 38, 0.3);
+}
+
+.hover-glow {
+  transition: all 0.3s ease;
+}
+
+.hover-glow:hover {
+  box-shadow: 
+    0 0 20px rgba(220, 38, 38, 0.4),
+    0 0 40px rgba(220, 38, 38, 0.2);
+}
+
+.hover-shake {
+  transition: all 0.3s ease;
+}
+
+.hover-shake:hover {
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* Epic text effects */
+.text-glow {
+  text-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
+}
+
+.text-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Epic loading states */
+.loading-dots {
+  display: inline-block;
+}
+
+.loading-dots::after {
+  content: '';
+  animation: loadingDots 1.5s infinite;
+}
+
+@keyframes loadingDots {
+  0%, 20% { content: ''; }
+  40% { content: '.'; }
+  60% { content: '..'; }
+  80%, 100% { content: '...'; }
+}
+
+/* Epic focus states */
+.focus-ring {
+  transition: all 0.3s ease;
+}
+
+.focus-ring:focus {
+  outline: none;
+  box-shadow: 
+    0 0 0 3px rgba(220, 38, 38, 0.3),
+    0 0 20px rgba(220, 38, 38, 0.2);
+  transform: scale(1.02);
+}
+
+/* Epic responsive animations */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Epic print styles */
+@media print {
+  .neon-glow,
+  .pulse-glow,
+  .floating {
+    animation: none !important;
+    box-shadow: none !important;
+  }
 }

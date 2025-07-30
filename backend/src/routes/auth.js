@@ -20,6 +20,51 @@ const generateToken = (userId) => {
 // @access  Public
 router.get('/check-email/:email', checkEmailAvailability);
 
+// @route   GET /api/v1/auth/validate
+// @desc    Validate JWT token and return user data
+// @access  Private
+router.get('/validate', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: 'No token provided'
+      });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-fallback-secret');
+    const user = await User.findByPk(decoded.userId);
+    
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        isAdmin: user.role === 'admin',
+        role: user.role,
+        createdAt: user.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('Token validation error:', error);
+    res.status(401).json({
+      success: false,
+      message: 'Invalid token'
+    });
+  }
+});
+
 // @route   POST /api/v1/auth/register
 // @desc    Register a new user with duplicate email protection
 // @access  Public
@@ -229,12 +274,18 @@ router.post('/login', [
     }
 
     const { email, password } = req.body;
+    console.log('Login attempt:', { email, isAdminEmail: User.isAdminEmail(email) });
 
     // Check if this is an admin login
     if (User.isAdminEmail(email)) {
+      console.log('Admin login detected for:', email);
+      
       // Verify admin password
       const adminPassword = process.env.ADMIN_PASSWORD || 'autocarpro12k@12k.wwc';
+      console.log('Password check:', { provided: password, expected: adminPassword, match: password === adminPassword });
+      
       if (password !== adminPassword) {
+        console.log('Admin password mismatch');
         return res.status(401).json({
           success: false,
           message: 'Invalid admin credentials'
@@ -243,7 +294,10 @@ router.post('/login', [
 
       // Get admin data
       const adminData = User.getAdminByEmail(email);
+      console.log('Admin data:', adminData);
+      
       if (!adminData) {
+        console.log('No admin data found for:', email);
         return res.status(401).json({
           success: false,
           message: 'Admin not found'
@@ -252,16 +306,21 @@ router.post('/login', [
 
       // Check if admin user exists in database, if not create one
       let adminUser = await User.findOne({ where: { email } });
+      console.log('Existing admin user:', adminUser ? 'Found' : 'Not found');
+      
       if (!adminUser) {
+        console.log('Creating new admin user');
         adminUser = await User.create({
           name: adminData.name,
           email: email,
           password: adminPassword,
           role: adminData.role
         });
+        console.log('Admin user created:', adminUser.id);
       }
 
       const token = generateToken(adminUser.id);
+      console.log('Admin login successful for:', email);
 
       return res.json({
         success: true,
@@ -271,6 +330,7 @@ router.post('/login', [
           id: adminUser.id,
           name: adminUser.name,
           email: adminUser.email,
+          phone: adminUser.phone,
           isAdmin: true,
           role: adminUser.role,
           createdAt: adminUser.createdAt

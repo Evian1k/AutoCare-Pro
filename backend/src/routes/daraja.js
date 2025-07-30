@@ -13,9 +13,18 @@ const DARAJA_BASE_URL = process.env.DARAJA_BASE_URL || 'https://sandbox.safarico
 const DARAJA_PASSKEY = process.env.DARAJA_PASSKEY;
 const DARAJA_SHORTCODE = process.env.DARAJA_SHORTCODE;
 
+// Check if Daraja is properly configured
+const isDarajaConfigured = () => {
+  return DARAJA_CONSUMER_KEY && DARAJA_CONSUMER_SECRET && DARAJA_PASSKEY && DARAJA_SHORTCODE;
+};
+
 // Get Daraja access token
 const getDarajaAccessToken = async () => {
   try {
+    if (!isDarajaConfigured()) {
+      throw new Error('Daraja API not configured');
+    }
+
     const auth = Buffer.from(`${DARAJA_CONSUMER_KEY}:${DARAJA_CONSUMER_SECRET}`).toString('base64');
     const response = await axios.get(`${DARAJA_BASE_URL}/oauth/v1/generate?grant_type=client_credentials`, {
       headers: {
@@ -36,6 +45,40 @@ const generatePassword = (shortcode, passkey, timestamp) => {
   return Buffer.from(str).toString('base64');
 };
 
+// Mock payment for development
+const createMockPayment = async (userId, amount, phoneNumber, description) => {
+  const mockPayment = await Payment.create({
+    userId: userId,
+    amount: amount,
+    currency: 'KES',
+    paymentMethod: 'mpesa',
+    phoneNumber: phoneNumber,
+    description: description || 'AutoCare Pro Service Payment',
+    status: 'pending',
+    transactionId: `MOCK_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    metadata: {
+      isMock: true,
+      mockReason: 'Daraja API not configured for development'
+    }
+  });
+
+  // Simulate payment completion after 3 seconds
+  setTimeout(async () => {
+    await mockPayment.update({
+      status: 'completed',
+      completedAt: new Date(),
+      metadata: {
+        ...mockPayment.metadata,
+        mpesaReceiptNumber: `MOCK_${Date.now()}`,
+        transactionDate: new Date().toISOString()
+      }
+    });
+    console.log('Mock payment completed:', mockPayment.transactionId);
+  }, 3000);
+
+  return mockPayment;
+};
+
 // POST /api/v1/daraja/initiate-payment
 // Initiate M-Pesa STK Push
 router.post('/initiate-payment', authenticateToken, [
@@ -53,13 +96,41 @@ router.post('/initiate-payment', authenticateToken, [
     }
 
     const { amount, phoneNumber, description } = req.body;
+    console.log('Payment initiation:', { amount, phoneNumber, description });
     
+    // Check if Daraja is configured
+    if (!isDarajaConfigured()) {
+      console.log('Daraja not configured, using mock payment');
+      
+      // Create mock payment for development
+      const mockPayment = await createMockPayment(
+        req.user.id, 
+        amount, 
+        phoneNumber, 
+        description
+      );
+
+      return res.json({
+        success: true,
+        message: 'Mock payment initiated successfully. Payment will be completed in 3 seconds.',
+        data: {
+          paymentId: mockPayment.id,
+          checkoutRequestID: mockPayment.transactionId,
+          amount: amount,
+          phoneNumber: phoneNumber,
+          isMock: true
+        }
+      });
+    }
+
     // Format phone number for M-Pesa (254XXXXXXXXX)
     const formattedPhone = phoneNumber.startsWith('0') 
       ? '254' + phoneNumber.substring(1) 
       : phoneNumber.startsWith('254') 
         ? phoneNumber 
         : '254' + phoneNumber;
+
+    console.log('Formatted phone:', formattedPhone);
 
     const accessToken = await getDarajaAccessToken();
     const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, -3);
@@ -79,6 +150,8 @@ router.post('/initiate-payment', authenticateToken, [
       TransactionDesc: description || 'AutoCare Pro Service Payment'
     };
 
+    console.log('STK Push data:', stkPushData);
+
     const response = await axios.post(
       `${DARAJA_BASE_URL}/mpesa/stkpush/v1/processrequest`,
       stkPushData,
@@ -89,6 +162,8 @@ router.post('/initiate-payment', authenticateToken, [
         }
       }
     );
+
+    console.log('Daraja response:', response.data);
 
     if (response.data.ResultCode === '0') {
       // Create payment record
@@ -126,9 +201,39 @@ router.post('/initiate-payment', authenticateToken, [
     }
   } catch (error) {
     console.error('Daraja payment error:', error);
+    
+    // If Daraja fails, create a mock payment
+    if (!isDarajaConfigured()) {
+      console.log('Creating mock payment due to Daraja configuration issues');
+      
+      try {
+        const mockPayment = await createMockPayment(
+          req.user.id, 
+          req.body.amount, 
+          req.body.phoneNumber, 
+          req.body.description
+        );
+
+        return res.json({
+          success: true,
+          message: 'Mock payment initiated (Daraja not configured). Payment will be completed in 3 seconds.',
+          data: {
+            paymentId: mockPayment.id,
+            checkoutRequestID: mockPayment.transactionId,
+            amount: req.body.amount,
+            phoneNumber: req.body.phoneNumber,
+            isMock: true
+          }
+        });
+      } catch (mockError) {
+        console.error('Mock payment error:', mockError);
+      }
+    }
+    
     res.status(500).json({
       success: false,
-      message: 'Payment processing failed'
+      message: 'Payment processing failed. Please try again.',
+      error: error.message
     });
   }
 });
@@ -137,6 +242,8 @@ router.post('/initiate-payment', authenticateToken, [
 // Handle M-Pesa callback
 router.post('/callback', async (req, res) => {
   try {
+    console.log('Daraja callback received:', req.body);
+    
     const { Body } = req.body;
     const stkCallback = Body.stkCallback;
 
@@ -158,8 +265,7 @@ router.post('/callback', async (req, res) => {
           }
         });
 
-        // Send notification to user
-        // You can implement WebSocket notification here
+        console.log('Payment completed:', checkoutRequestID);
       }
     } else {
       // Payment failed
@@ -176,6 +282,8 @@ router.post('/callback', async (req, res) => {
             error: stkCallback.ResultDesc
           }
         });
+        
+        console.log('Payment failed:', checkoutRequestID);
       }
     }
 
@@ -210,7 +318,8 @@ router.get('/payment-status/:checkoutRequestID', authenticateToken, async (req, 
         amount: payment.amount,
         phoneNumber: payment.phoneNumber,
         createdAt: payment.createdAt,
-        completedAt: payment.completedAt
+        completedAt: payment.completedAt,
+        isMock: payment.metadata?.isMock || false
       }
     });
   } catch (error) {
