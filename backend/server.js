@@ -121,6 +121,7 @@ app.use(`/api/${apiVersion}/payments`, paymentRoutes);
 app.use(`/api/${apiVersion}/bank-accounts`, authenticateToken, bankAccountRoutes);
 app.use(`/api/${apiVersion}/daraja`, darajaRoutes);
 app.use(`/api/${apiVersion}/notifications`, authenticateToken, notificationRoutes);
+app.use(`/api/${apiVersion}/admin/bookings`, authenticateToken, adminBookingRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

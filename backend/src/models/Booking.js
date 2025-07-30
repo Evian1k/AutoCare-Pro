@@ -7,29 +7,109 @@ const Booking = sequelize.define('Booking', {
     primaryKey: true,
     autoIncrement: true
   },
-  bookingNumber: {
-    type: DataTypes.STRING,
+  userId: {
+    type: DataTypes.INTEGER,
     allowNull: false,
-    unique: true
+    references: {
+      model: 'Users',
+      key: 'id'
+    }
   },
   serviceType: {
-    type: DataTypes.ENUM('delivery', 'pickup', 'transport', 'maintenance', 'emergency'),
+    type: DataTypes.STRING,
     allowNull: false
+  },
+  description: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  location: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  vehicleInfo: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  urgency: {
+    type: DataTypes.ENUM('normal', 'urgent', 'emergency'),
+    defaultValue: 'normal'
   },
   status: {
-    type: DataTypes.ENUM('pending', 'confirmed', 'assigned', 'in_progress', 'completed', 'cancelled'),
+    type: DataTypes.ENUM('pending', 'approved', 'rejected', 'completed', 'cancelled'),
     defaultValue: 'pending'
   },
-  customerId: {
-    type: DataTypes.INTEGER,
-    allowNull: false
+  amount: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true
   },
-  isActive: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: true
+  adminNotes: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  rejectionReason: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  estimatedCompletion: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  assignedTruck: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  approvedBy: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'Users',
+      key: 'id'
+    }
+  },
+  approvedAt: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  rejectedBy: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'Users',
+      key: 'id'
+    }
+  },
+  rejectedAt: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  completedBy: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'Users',
+      key: 'id'
+    }
+  },
+  completedAt: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  completionNotes: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
   }
 }, {
-  tableName: 'bookings'
+  tableName: 'bookings',
+  timestamps: true
 });
 
 module.exports = Booking;

@@ -49,6 +49,7 @@ import { useSocket } from '../contexts/SocketContext';
 
 import NotificationSystem from '../components/NotificationSystem';
 import EpicMap from '../components/EpicMap';
+import RequestManagement from '../components/admin/RequestManagement';
 
 
 const AdminDashboard = () => {
@@ -679,70 +680,7 @@ const AdminDashboard = () => {
                 exit={{ opacity: 0, x: -20 }}
                 className="space-y-6"
               >
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-white">Service Requests</h2>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handleDispatchAll}
-                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
-                  >
-                    <Truck className="h-4 w-4" />
-                    Dispatch All
-                  </motion.button>
-                </div>
-
-                <div className="grid gap-4">
-                  {requests.map((request) => (
-                    <motion.div
-                      key={request.id}
-                      className="bg-gray-900 rounded-xl p-6 border border-gray-800 shadow-lg"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-red-600/20 rounded-lg flex items-center justify-center">
-                            <Truck className="h-6 w-6 text-red-400" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-white">{request.userName}</h3>
-                            <p className="text-sm text-gray-400">{request.serviceType}</p>
-                            <p className="text-xs text-gray-500">{request.location}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <div className="text-right">
-                            <p className="font-bold text-green-400">KES {request.amount}</p>
-                            <span className={`text-xs px-2 py-1 rounded-full ${
-                              request.status === 'pending' ? 'bg-orange-400/20 text-orange-400' :
-                              request.status === 'approved' ? 'bg-green-400/20 text-green-400' :
-                              'bg-gray-400/20 text-gray-400'
-                            }`}>
-                              {request.status}
-                            </span>
-                          </div>
-                          <div className="flex gap-2">
-                            <motion.button
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() => handleRequestAction(request.id, 'approved')}
-                              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
-                            >
-                              Approve
-                            </motion.button>
-                            <motion.button
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() => handleRequestAction(request.id, 'rejected')}
-                              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
-                            >
-                              Reject
-                            </motion.button>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
+                <RequestManagement />
               </motion.div>
             )}
 
