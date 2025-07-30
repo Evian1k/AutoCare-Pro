@@ -39,7 +39,10 @@ const server = createServer(app);
 // Socket.io setup for real-time features
 const io = new Server(server, {
   cors: {
-    origin: process.env.SOCKET_CORS_ORIGIN || "http://localhost:5173",
+    origin: [
+      process.env.SOCKET_CORS_ORIGIN || "http://localhost:5173",
+      "http://localhost:5176"
+    ],
     methods: ["GET", "POST"]
   }
 });
@@ -73,6 +76,7 @@ app.use(cors({
   origin: [
     'http://localhost:5173',
     'http://localhost:5174',
+    'http://localhost:5176',
     'https://auto-care-pro-269h.vercel.app',
     'https://auto-care-pro-269h-git-main-evian1ks-projects.vercel.app',
     'https://auto-care-pro-269h-2pu891u7k-evian1ks-projects.vercel.app',
