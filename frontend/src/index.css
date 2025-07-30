@@ -34,155 +34,47 @@
 
 body {
   color: hsl(var(--foreground));
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a0a0a 25%, #2a0505 50%, #1a0a0a 75%, #0a0a0a 100%);
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 50%, #1e293b 75%, #0f172a 100%);
   font-family: 'Inter', sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
 }
 
-/* 🔥 EPIC HARD ROCK BACKGROUND */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: 
-    radial-gradient(circle at 20% 80%, rgba(220, 38, 38, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(239, 68, 68, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(220, 38, 38, 0.1) 0%, transparent 50%),
-    linear-gradient(45deg, transparent 30%, rgba(220, 38, 38, 0.05) 50%, transparent 70%);
-  animation: epicPulse 8s ease-in-out infinite, fireShift 12s linear infinite;
-  z-index: -1;
-}
-
-/* 🔥 FIERY PARTICLE EFFECTS */
-body::after {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: 
-    radial-gradient(3px 3px at 20px 30px, #dc2626, transparent),
-    radial-gradient(3px 3px at 40px 70px, #ef4444, transparent),
-    radial-gradient(2px 2px at 90px 40px, #f97316, transparent),
-    radial-gradient(2px 2px at 130px 80px, #eab308, transparent),
-    radial-gradient(3px 3px at 160px 30px, #dc2626, transparent),
-    radial-gradient(2px 2px at 200px 60px, #ef4444, transparent),
-    radial-gradient(3px 3px at 250px 20px, #f97316, transparent);
-  background-repeat: repeat;
-  background-size: 300px 200px;
-  animation: sparkle 15s linear infinite, fireRise 20s ease-in-out infinite;
-  opacity: 0.4;
-  z-index: -1;
-}
-
-@keyframes fireShift {
-  0%, 100% { transform: translateX(0) rotate(0deg); }
-  25% { transform: translateX(10px) rotate(1deg); }
-  50% { transform: translateX(-5px) rotate(-1deg); }
-  75% { transform: translateX(15px) rotate(0.5deg); }
-}
-
-@keyframes fireRise {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-20px) scale(1.1); }
-}
-
-@keyframes sparkle {
-  0% { transform: translateY(0px) rotate(0deg); }
-  100% { transform: translateY(-200px) rotate(360deg); }
-}
-
-@keyframes epicPulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.7; }
-}
-
-/* 🎸 EPIC CUSTOM SCROLLBAR */
+/* Simple scrollbar */
 ::-webkit-scrollbar {
-  width: 16px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 8px;
-  border: 1px solid rgba(220, 38, 38, 0.3);
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #dc2626, #b91c1c, #dc2626);
-  border-radius: 8px;
-  border: 2px solid rgba(0, 0, 0, 0.3);
-  box-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #ef4444, #dc2626, #ef4444);
-  box-shadow: 0 0 20px rgba(220, 38, 38, 0.8);
+  background: rgba(255, 255, 255, 0.5);
 }
 
-/* 🔥 EPIC GLASS EFFECT */
+/* Simple glass effect */
 .glass-effect {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(25px);
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 
-    0 8px 32px 0 rgba(31, 38, 135, 0.37),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 0 20px rgba(220, 38, 38, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
-/* 🔥 LEGENDARY NEON GLOW */
-.neon-glow {
-  box-shadow: 
-    0 0 20px rgba(220, 38, 38, 0.6),
-    0 0 40px rgba(220, 38, 38, 0.4),
-    0 0 60px rgba(220, 38, 38, 0.2),
-    inset 0 0 20px rgba(220, 38, 38, 0.1);
-  animation: neonPulse 2s ease-in-out infinite alternate;
-}
-
-.neon-glow:hover {
-  box-shadow: 
-    0 0 30px rgba(220, 38, 38, 0.8),
-    0 0 60px rgba(220, 38, 38, 0.6),
-    0 0 90px rgba(220, 38, 38, 0.4),
-    inset 0 0 30px rgba(220, 38, 38, 0.2);
-}
-
-@keyframes neonPulse {
-  from { 
-    box-shadow: 
-      0 0 20px rgba(220, 38, 38, 0.6),
-      0 0 40px rgba(220, 38, 38, 0.4);
-  }
-  to { 
-    box-shadow: 
-      0 0 30px rgba(220, 38, 38, 0.8),
-      0 0 60px rgba(220, 38, 38, 0.6);
-  }
-}
-
-/* 🎸 EPIC GRADIENT TEXT */
+/* Simple gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, #dc2626, #f97316, #eab308, #dc2626);
-  background-size: 300% 300%;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: gradientShift 3s ease infinite;
-  font-weight: 900;
-  text-shadow: 0 0 30px rgba(220, 38, 38, 0.5);
-}
-
-@keyframes gradientShift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+  font-weight: 600;
 }
 
 /* 🔥 EPIC ANIMATED BACKGROUND */
@@ -252,58 +144,33 @@ body::after {
   left: 100%;
 }
 
-/* 🔥 LEGENDARY BUTTON ANIMATIONS */
+/* Simple button animations */
 .btn-animate {
   position: relative;
   overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #dc2626, #991b1b);
   border: none;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-family: 'Black Ops One', cursive;
-}
-
-.btn-animate::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-  transition: left 0.8s;
+  font-weight: 600;
+  color: white;
 }
 
 .btn-animate:hover {
-  transform: translateY(-3px) scale(1.05);
-  box-shadow: 
-    0 15px 30px rgba(220, 38, 38, 0.6),
-    0 0 40px rgba(220, 38, 38, 0.4),
-    0 0 60px rgba(220, 38, 38, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(220, 38, 38, 0.3);
 }
 
-.btn-animate:hover::before {
-  left: 100%;
-}
-
-.btn-animate:active {
-  transform: translateY(-1px) scale(1.02);
-}
-
-/* 🎸 EPIC LOADING SPINNER */
+/* Simple loading spinner */
 .loading-spinner {
-  border: 4px solid rgba(220, 38, 38, 0.3);
-  border-top: 4px solid #dc2626;
+  border: 3px solid rgba(220, 38, 38, 0.3);
+  border-top: 3px solid #dc2626;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: epicSpin 1s linear infinite;
-  box-shadow: 0 0 20px rgba(220, 38, 38, 0.5);
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
 }
 
-@keyframes epicSpin {
+@keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
@@ -387,39 +254,46 @@ body::after {
   animation: gradientShift 3s ease infinite;
 }
 
-/* 🎸 LEGENDARY DASHBOARD CARDS */
+/* Modern Dashboard Cards */
 .dashboard-card {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(17, 24, 39, 0.95);
   backdrop-filter: blur(20px);
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  border-radius: 25px;
-  padding: 2.5rem;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 1px solid rgba(55, 65, 81, 0.6);
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .dashboard-card::before {
   content: '';
   position: absolute;
   top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(220, 38, 38, 0.15), transparent);
-  transition: left 0.8s;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #dc2626, #991b1b, #dc2626);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 .dashboard-card:hover {
-  transform: translateY(-8px) scale(1.03);
-  box-shadow: 
-    0 25px 50px rgba(0, 0, 0, 0.5),
-    0 0 40px rgba(220, 38, 38, 0.3),
-    0 0 80px rgba(220, 38, 38, 0.1);
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+  border-color: rgba(220, 38, 38, 0.5);
 }
 
 .dashboard-card:hover::before {
-  left: 100%;
+  opacity: 1;
 }
 
 /* 🔥 EPIC NAVIGATION STYLING */
@@ -680,193 +554,41 @@ body::after {
   box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
 }
 
-/* 🔥 EPIC TYPOGRAPHY */
-.epic-title {
-  font-family: 'Black Ops One', cursive;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 3px;
-  background: linear-gradient(135deg, #dc2626, #f97316, #eab308);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: gradientShift 3s ease infinite;
-  text-shadow: 0 0 40px rgba(220, 38, 38, 0.6);
-}
 
-.epic-subtitle {
-  font-family: 'Orbitron', monospace;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
-  text-transform: uppercase;
-  letter-spacing: 2px;
-}
 
-/* 🎸 LEGENDARY BUTTON VARIANTS */
+/* Simple button variants */
 .btn-epic {
-  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  background: linear-gradient(135deg, #dc2626, #991b1b);
   border: none;
   color: white;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  padding: 18px 36px;
-  border-radius: 15px;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  position: relative;
-  overflow: hidden;
-  font-family: 'Black Ops One', cursive;
-}
-
-.btn-epic::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-  transition: left 0.8s;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
 }
 
 .btn-epic:hover {
-  transform: translateY(-4px) scale(1.05);
-  box-shadow: 
-    0 20px 40px rgba(220, 38, 38, 0.6),
-    0 0 60px rgba(220, 38, 38, 0.4),
-    0 0 100px rgba(220, 38, 38, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(220, 38, 38, 0.3);
 }
 
-.btn-epic:hover::before {
-  left: 100%;
-}
-
-.btn-epic:active {
-  transform: translateY(-2px) scale(1.02);
-}
-
-/* 🔥 EPIC MODAL STYLING */
+/* Simple modal styling */
 .epic-modal {
-  background: rgba(0, 0, 0, 0.9);
-  backdrop-filter: blur(25px);
-  border: 3px solid rgba(220, 38, 38, 0.4);
-  border-radius: 30px;
-  box-shadow: 
-    0 30px 60px rgba(0, 0, 0, 0.6),
-    0 0 60px rgba(220, 38, 38, 0.4),
-    0 0 120px rgba(220, 38, 38, 0.2);
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
-/* 🎸 LEGENDARY PROGRESS BARS */
-.progress-epic {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 15px;
-  overflow: hidden;
-  position: relative;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-}
-
-.progress-epic::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  background: linear-gradient(90deg, #dc2626, #f97316, #eab308);
-  border-radius: 15px;
-  animation: progressFill 2s ease-in-out infinite;
-}
-
-@keyframes progressFill {
-  0%, 100% { width: 0%; }
-  50% { width: 100%; }
-}
-
-/* 🔥 EPIC EMOJI ANIMATIONS */
-.emoji-bounce {
-  animation: emojiBounce 2s ease-in-out infinite;
-}
-
-@keyframes emojiBounce {
-  0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
-  50% { transform: translateY(-15px) scale(1.2) rotate(5deg); }
-}
-
-.emoji-rotate {
-  animation: emojiRotate 3s linear infinite;
-}
-
-@keyframes emojiRotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.emoji-pulse {
-  animation: emojiPulse 1.5s ease-in-out infinite;
-}
-
-@keyframes emojiPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.3); }
-}
-
-/* 🎸 EPIC ENTRANCE ANIMATIONS */
-.entrance-slide-up {
-  animation: entranceSlideUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-@keyframes entranceSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(60px) scale(0.7);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.entrance-slide-down {
-  animation: entranceSlideDown 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-@keyframes entranceSlideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-60px) scale(0.7);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.entrance-zoom-in {
-  animation: entranceZoomIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-@keyframes entranceZoomIn {
-  from {
-    opacity: 0;
-    transform: scale(0.4) rotate(-15deg);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) rotate(0deg);
-  }
-}
-
-/* 🔥 EPIC HOVER EFFECTS */
+/* Simple hover effects */
 .hover-lift {
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: all 0.3s ease;
 }
 
 .hover-lift:hover {
-  transform: translateY(-12px) scale(1.08);
-  box-shadow: 
-    0 25px 50px rgba(0, 0, 0, 0.5),
-    0 0 40px rgba(220, 38, 38, 0.4),
-    0 0 80px rgba(220, 38, 38, 0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 }
 
 .hover-glow {
@@ -874,42 +596,7 @@ body::after {
 }
 
 .hover-glow:hover {
-  box-shadow: 
-    0 0 30px rgba(220, 38, 38, 0.6),
-    0 0 60px rgba(220, 38, 38, 0.4),
-    0 0 90px rgba(220, 38, 38, 0.2);
-}
-
-.hover-shake {
-  transition: all 0.3s ease;
-}
-
-.hover-shake:hover {
-  animation: shake 0.6s ease-in-out;
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-8px); }
-  75% { transform: translateX(8px); }
-}
-
-/* 🎸 EPIC TEXT EFFECTS */
-.text-glow {
-  text-shadow: 0 0 20px rgba(220, 38, 38, 0.8);
-}
-
-.text-shimmer {
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
-  background-size: 200% 100%;
-  animation: shimmer 2s infinite;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  box-shadow: 0 0 20px rgba(220, 38, 38, 0.3);
 }
 
 /* 🔥 EPIC LOADING STATES */
@@ -952,12 +639,100 @@ body::after {
   }
 }
 
-/* 🎸 EPIC PRINT STYLES */
+/* Modern Button Styles */
+.btn-modern {
+  background: linear-gradient(135deg, #dc2626, #991b1b);
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.2);
+}
+
+.btn-modern::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-modern:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
+}
+
+.btn-modern:hover::before {
+  left: 100%;
+}
+
+/* Enhanced Glass Effect */
+.glass-modern {
+  background: rgba(17, 24, 39, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(55, 65, 81, 0.6);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Typography Enhancements */
+.font-inter {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #dc2626, #991b1b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Enhanced Hover Effects */
+.hover-lift-modern {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift-modern:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Status Indicators */
+.status-indicator-modern {
+  position: relative;
+  display: inline-block;
+}
+
+.status-indicator-modern::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -8px;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+  animation: pulse-modern 2s infinite;
+}
+
+@keyframes pulse-modern {
+  0%, 100% { opacity: 1; transform: translateY(-50%) scale(1); }
+  50% { opacity: 0.5; transform: translateY(-50%) scale(1.2); }
+}
+
+/* Print styles */
 @media print {
-  .neon-glow,
-  .pulse-glow,
-  .floating {
-    animation: none !important;
-    box-shadow: none !important;
+  .glass-effect {
+    background: white !important;
+    color: black !important;
   }
 }

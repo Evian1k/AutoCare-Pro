@@ -13,7 +13,7 @@ import {
   Route,
   Compass
 } from 'lucide-react';
-import audioSystem from './AudioSystem';
+
 
 const EpicMap = ({ 
   center = { lat: -1.2921, lng: 36.8219 }, // Nairobi
@@ -90,7 +90,6 @@ const EpicMap = ({
     getUserLocation();
     
     setIsLoading(false);
-    audioSystem.playEpic();
   };
 
   const getEpicMapStyle = () => {
@@ -277,7 +276,6 @@ const EpicMap = ({
     
     locationButton.addEventListener('click', () => {
       getUserLocation();
-      audioSystem.playNotification();
     });
 
     // Epic compass button
@@ -336,7 +334,6 @@ const EpicMap = ({
         infoWindow.open(mapInstanceRef.current, marker);
         setSelectedMarker(markerData);
         onMarkerClick && onMarkerClick(markerData);
-        audioSystem.playNotification();
       });
 
       markersRef.current.push(marker);
@@ -419,12 +416,9 @@ const EpicMap = ({
           // Center map on user location
           mapInstanceRef.current.setCenter(userPos);
           mapInstanceRef.current.setZoom(15);
-          
-          audioSystem.playSuccess();
         },
         (error) => {
           console.error('Error getting location:', error);
-          audioSystem.playError();
         }
       );
     }
@@ -448,10 +442,8 @@ const EpicMap = ({
 
       directionsRenderer.setDirections(result);
       setDirections(result);
-      audioSystem.playNotification();
     } catch (error) {
       console.error('Error calculating route:', error);
-      audioSystem.playError();
     }
   };
 
@@ -460,9 +452,9 @@ const EpicMap = ({
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className={`epic-map-container ${className}`}
+              className={`map-container ${className}`}
     >
-      <Card className="map-container neon-glow">
+              <Card className="map-container glass-effect">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 gradient-text">
             <MapPin className="h-6 w-6" />

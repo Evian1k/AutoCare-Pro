@@ -18,7 +18,7 @@ import {
   Brain,
   Sparkles
 } from 'lucide-react';
-import audioSystem from './AudioSystem';
+
 
 const AIAssistant = ({ isOnline = false, onMessage }) => {
   const [messages, setMessages] = useState([]);
@@ -78,7 +78,6 @@ const AIAssistant = ({ isOnline = false, onMessage }) => {
         isAI: true
       };
       setMessages([welcomeMessage]);
-      audioSystem.playNotification();
     }
   }, [isOnline]);
 
@@ -120,7 +119,6 @@ const AIAssistant = ({ isOnline = false, onMessage }) => {
 
     setMessages(prev => [...prev, aiMessage]);
     setIsTyping(false);
-    audioSystem.playMessage();
   };
 
   const handleSendMessage = async () => {
@@ -162,7 +160,7 @@ const AIAssistant = ({ isOnline = false, onMessage }) => {
       transition={{ duration: 0.6 }}
       className="w-full max-w-2xl mx-auto"
     >
-      <Card className="epic-modal neon-glow">
+                  <Card className="glass-effect">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

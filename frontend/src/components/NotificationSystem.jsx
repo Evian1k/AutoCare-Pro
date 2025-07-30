@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, X, MessageSquare, AlertTriangle, CheckCircle, DollarSign, Truck, Wrench } from 'lucide-react';
 import { useSocket } from '../contexts/SocketContext';
 import { useAuth } from '../contexts/AuthContext';
-import audioSystem from './AudioSystem';
 
 const NotificationSystem = () => {
   const [notifications, setNotifications] = useState([]);
@@ -26,7 +25,6 @@ const NotificationSystem = () => {
         icon: <MessageSquare className="h-5 w-5" />
       };
       addNotification(notification);
-      audioSystem.playMessage();
     });
 
     // Listen for new service requests
@@ -41,7 +39,6 @@ const NotificationSystem = () => {
         icon: <Wrench className="h-5 w-5" />
       };
       addNotification(notification);
-      audioSystem.playNotification();
     });
 
     // Listen for payment updates
@@ -56,7 +53,6 @@ const NotificationSystem = () => {
         icon: <DollarSign className="h-5 w-5" />
       };
       addNotification(notification);
-      audioSystem.playPayment();
     });
 
     // Listen for truck updates
@@ -71,7 +67,6 @@ const NotificationSystem = () => {
         icon: <Truck className="h-5 w-5" />
       };
       addNotification(notification);
-      audioSystem.playNotification();
     });
 
     return () => {
@@ -127,7 +122,7 @@ const NotificationSystem = () => {
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         onClick={() => setShowNotifications(!showNotifications)}
-        className="relative p-3 rounded-full bg-red-600 hover:bg-red-700 transition-all duration-300 neon-glow"
+        className="relative p-3 rounded-full bg-blue-600 hover:bg-blue-700 transition-all duration-300"
       >
         <Bell className="h-6 w-6 text-white" />
         {unreadCount > 0 && (

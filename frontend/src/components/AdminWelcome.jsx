@@ -16,7 +16,7 @@ import {
   Star,
   Rocket
 } from 'lucide-react';
-import audioSystem from './AudioSystem';
+
 
 const AdminWelcome = ({ user }) => {
   const [currentEmoji, setCurrentEmoji] = useState('👑');
@@ -44,8 +44,7 @@ const AdminWelcome = ({ user }) => {
       setCurrentEmoji(emojis[Math.floor(Math.random() * emojis.length)]);
     }, 2000);
 
-    // Play epic welcome sound
-    audioSystem.playVictoryFanfare();
+    // Welcome animation
 
     // Auto-hide welcome after 8 seconds
     const welcomeTimer = setTimeout(() => {
@@ -125,7 +124,7 @@ const AdminWelcome = ({ user }) => {
             exit="exit"
             className="w-full max-w-4xl"
           >
-            <Card className="epic-modal neon-glow">
+            <Card className="glass-effect">
               <CardHeader className="text-center">
                 <motion.div
                   variants={emojiVariants}
@@ -134,11 +133,11 @@ const AdminWelcome = ({ user }) => {
                 >
                   {currentEmoji}
                 </motion.div>
-                <CardTitle className="epic-title text-4xl mb-2">
-                  Welcome Back, {user?.name}! 👑
+                <CardTitle className="text-4xl mb-2 font-bold text-white">
+                  Welcome Back, {user?.name}!
                 </CardTitle>
-                <p className="epic-subtitle text-xl">
-                  Ready to rock the AutoCare Pro system? 🚀
+                <p className="text-xl text-gray-300">
+                  Ready to manage the AutoCare Pro system?
                 </p>
               </CardHeader>
               
@@ -165,8 +164,8 @@ const AdminWelcome = ({ user }) => {
 
                 {/* Admin Features */}
                 <motion.div variants={itemVariants}>
-                  <h3 className="epic-subtitle text-xl mb-4 text-center">
-                    Your Epic Admin Powers ⚡
+                  <h3 className="text-xl mb-4 text-center font-semibold text-white">
+                    Your Admin Features
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {adminFeatures.map((feature, index) => (
@@ -178,7 +177,7 @@ const AdminWelcome = ({ user }) => {
                           scale: 1.05,
                           boxShadow: "0 20px 40px rgba(220, 38, 38, 0.3)"
                         }}
-                        onClick={() => audioSystem.playNotification()}
+                        onClick={() => {}}
                       >
                         <div className="text-3xl mb-3 text-red-400">{feature.icon}</div>
                         <h4 className="font-bold text-white mb-2">{feature.title}</h4>
@@ -196,11 +195,10 @@ const AdminWelcome = ({ user }) => {
                     className="btn-epic px-8 py-3"
                     onClick={() => {
                       setShowWelcome(false);
-                      audioSystem.playSuccess();
                     }}
                   >
                     <Rocket className="mr-2 h-5 w-5" />
-                    Let's Rock! 🎸
+                    Get Started
                   </motion.button>
                   
                   <motion.button
@@ -209,7 +207,6 @@ const AdminWelcome = ({ user }) => {
                     className="btn-animate px-8 py-3 bg-transparent border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
                     onClick={() => {
                       setShowWelcome(false);
-                      audioSystem.playNotification();
                     }}
                   >
                     <Shield className="mr-2 h-5 w-5" />
@@ -217,10 +214,10 @@ const AdminWelcome = ({ user }) => {
                   </motion.button>
                 </motion.div>
 
-                {/* Epic Quote */}
+                {/* Quote */}
                 <motion.div variants={itemVariants} className="text-center">
                   <p className="text-gray-400 italic">
-                    "With great power comes great responsibility... and epic rock music! 🎸"
+                    "With great power comes great responsibility."
                   </p>
                 </motion.div>
               </CardContent>

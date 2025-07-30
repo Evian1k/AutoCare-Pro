@@ -23,7 +23,7 @@ import {
   Wrench
 } from 'lucide-react';
 import { apiService } from '../services/api';
-import audioSystem from '../components/AudioSystem';
+
 
 const AuthContext = createContext();
 
@@ -46,7 +46,6 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     initializeAuth();
-    audioSystem.initialize();
   }, []);
 
   const initializeAuth = async () => {
@@ -65,7 +64,6 @@ export const AuthProvider = ({ children }) => {
             setUser(validatedUser);
             loadUserPermissions(validatedUser);
             startSessionTimer();
-            audioSystem.playSuccess();
           } else {
             // Token invalid, clear storage
             localStorage.removeItem('token');
@@ -143,7 +141,6 @@ export const AuthProvider = ({ children }) => {
     // Set new timer (24 hours)
     const timeout = setTimeout(() => {
       logout('Session expired. Please login again.');
-      audioSystem.playError();
     }, 24 * 60 * 60 * 1000);
 
     setSessionTimeout(timeout);
@@ -172,15 +169,13 @@ export const AuthProvider = ({ children }) => {
         startSessionTimer();
         setShowLogin(false);
         
-        // Epic role-based redirect with animations
+        // Role-based redirect
         if (userData.role === 'admin' || userData.isAdmin) {
           console.log('👑 Admin login detected - redirecting to admin dashboard');
-          audioSystem.playVictoryFanfare();
           // Redirect to admin dashboard
           window.location.href = '/admin';
         } else {
           console.log('👤 User login detected - redirecting to user dashboard');
-          audioSystem.playSuccess();
           // Redirect to user dashboard
           window.location.href = '/dashboard';
         }
@@ -189,13 +184,11 @@ export const AuthProvider = ({ children }) => {
       } else {
         console.log('❌ Login failed:', response.message);
         setError(response.message || 'Login failed');
-        audioSystem.playError();
         return { success: false, message: response.message };
       }
     } catch (error) {
       console.error('💥 Login error:', error);
       setError('Login failed. Please try again.');
-      audioSystem.playError();
       return { success: false, message: 'Login failed' };
     }
   };
@@ -215,16 +208,13 @@ export const AuthProvider = ({ children }) => {
         loadUserPermissions(newUser);
         startSessionTimer();
         setShowRegister(false);
-        audioSystem.playVictoryFanfare();
         return { success: true };
       } else {
         setError(response.message || 'Registration failed');
-        audioSystem.playError();
         return { success: false, message: response.message };
       }
     } catch (error) {
       setError('Registration failed. Please try again.');
-      audioSystem.playError();
       return { success: false, message: 'Registration failed' };
     }
   };
@@ -238,7 +228,6 @@ export const AuthProvider = ({ children }) => {
       clearTimeout(sessionTimeout);
       setSessionTimeout(null);
     }
-    audioSystem.playNotification();
     setError(message);
   };
 
@@ -251,14 +240,11 @@ export const AuthProvider = ({ children }) => {
 
       if (response.success) {
         setUser(response.user);
-        audioSystem.playSuccess();
         return { success: true };
       } else {
-        audioSystem.playError();
         return { success: false, message: response.message };
       }
     } catch (error) {
-      audioSystem.playError();
       return { success: false, message: 'Profile update failed' };
     }
   };
@@ -271,14 +257,11 @@ export const AuthProvider = ({ children }) => {
       });
 
       if (response.success) {
-        audioSystem.playSuccess();
         return { success: true };
       } else {
-        audioSystem.playError();
         return { success: false, message: response.message };
       }
     } catch (error) {
-      audioSystem.playError();
       return { success: false, message: 'Password change failed' };
     }
   };
@@ -323,11 +306,11 @@ export const AuthProvider = ({ children }) => {
             exit={{ scale: 0.9, opacity: 0 }}
             className="w-full max-w-md"
           >
-            <Card className="epic-modal">
+            <Card className="glass-effect">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 gradient-text">
+                <CardTitle className="flex items-center gap-2 text-white">
                   <Key className="h-6 w-6" />
-                  Epic Login
+                  Login
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -355,11 +338,11 @@ export const AuthProvider = ({ children }) => {
             exit={{ scale: 0.9, opacity: 0 }}
             className="w-full max-w-md"
           >
-            <Card className="epic-modal">
+            <Card className="glass-effect">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 gradient-text">
+                <CardTitle className="flex items-center gap-2 text-white">
                   <User className="h-6 w-6" />
-                  Epic Registration
+                  Registration
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -496,7 +479,6 @@ export const AuthProvider = ({ children }) => {
       
       if (formData.password !== formData.confirmPassword) {
         setError('Passwords do not match');
-        audioSystem.playError();
         return;
       }
 
