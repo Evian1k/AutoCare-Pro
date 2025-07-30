@@ -61,7 +61,7 @@ async (req, res) => {
     const { name, email, password, phone } = req.body;
 
     // Check if user already exists (for regular users only)
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ where: { email } });
     
     // Check if trying to register with admin email
     console.log('Checking if admin email:', email, 'Is admin:', User.isAdminEmail(email));
@@ -114,38 +114,33 @@ async (req, res) => {
         name: adminData.name,
         email: email,
         phone: phone || '',
-        isAdmin: true,
         role: adminData.role
       });
       
-      const adminUser = new User({
+      const adminUser = await User.create({
         name: adminData.name,
         email: email,
         password: password,
         phone: phone || '',
-        isAdmin: true,
         role: adminData.role
       });
 
-      console.log('Saving admin user...');
-      await adminUser.save();
-      console.log('Admin user saved successfully:', adminUser._id);
+      console.log('Admin user saved successfully:', adminUser.id);
 
       // Generate JWT token
-      const token = generateToken(adminUser._id);
+      const token = generateToken(adminUser.id);
 
       return res.status(201).json({
         success: true,
         message: 'Admin registered successfully',
         token,
         user: {
-          id: adminUser._id,
+          id: adminUser.id,
           name: adminUser.name,
           email: adminUser.email,
           phone: adminUser.phone,
-          isAdmin: adminUser.isAdmin,
+          isAdmin: true,
           role: adminUser.role,
-          vehicleCount: adminUser.vehicleCount,
           createdAt: adminUser.createdAt
         }
       });
@@ -165,32 +160,28 @@ async (req, res) => {
     }
 
     // Create new regular user
-    const user = new User({
+    const user = await User.create({
       name,
       email,
       password,
       phone,
-      isAdmin: false,
       role: 'user'
     });
 
-    await user.save();
-
     // Generate JWT token
-    const token = generateToken(user._id);
+    const token = generateToken(user.id);
 
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
       token,
       user: {
-        id: user._id,
+        id: user.id,
         name: user.name,
         email: user.email,
         phone: user.phone,
-        isAdmin: user.isAdmin,
+        isAdmin: false,
         role: user.role,
-        vehicleCount: user.vehicleCount,
         createdAt: user.createdAt
       }
     });
@@ -260,39 +251,35 @@ router.post('/login', [
       }
 
       // Check if admin user exists in database, if not create one
-      let adminUser = await User.findOne({ email });
+      let adminUser = await User.findOne({ where: { email } });
       if (!adminUser) {
-        adminUser = new User({
+        adminUser = await User.create({
           name: adminData.name,
           email: email,
           password: adminPassword,
-          isAdmin: true,
-          role: adminData.role,
-          vehicleCount: 0
+          role: adminData.role
         });
-        await adminUser.save();
       }
 
-      const token = generateToken(adminUser._id);
+      const token = generateToken(adminUser.id);
 
       return res.json({
         success: true,
         message: 'Admin login successful',
         token,
         user: {
-          id: adminUser._id,
+          id: adminUser.id,
           name: adminUser.name,
           email: adminUser.email,
           isAdmin: true,
           role: adminUser.role,
-          vehicleCount: adminUser.vehicleCount,
           createdAt: adminUser.createdAt
         }
       });
     }
 
     // Regular user login
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ where: { email } });
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -319,21 +306,19 @@ router.post('/login', [
       });
     }
 
-    const token = generateToken(user._id);
+    const token = generateToken(user.id);
 
     res.json({
       success: true,
       message: 'Login successful',
       token,
       user: {
-        id: user._id,
+        id: user.id,
         name: user.name,
         email: user.email,
         phone: user.phone,
-        isAdmin: user.isAdmin,
+        isAdmin: user.role === 'admin',
         role: user.role,
-        vehicleCount: user.vehicleCount,
-        lastService: user.lastService,
         createdAt: user.createdAt
       }
     });
@@ -362,7 +347,7 @@ router.get('/verify', async (req, res) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-fallback-secret');
-    const user = await User.findById(decoded.userId);
+    const user = await User.findByPk(decoded.userId);
 
     if (!user || !user.isActive) {
       return res.status(401).json({
@@ -374,14 +359,12 @@ router.get('/verify', async (req, res) => {
     res.json({
       success: true,
       user: {
-        id: user._id,
+        id: user.id,
         name: user.name,
         email: user.email,
         phone: user.phone,
-        isAdmin: user.isAdmin,
+        isAdmin: user.role === 'admin',
         role: user.role,
-        vehicleCount: user.vehicleCount,
-        lastService: user.lastService,
         createdAt: user.createdAt
       }
     });
