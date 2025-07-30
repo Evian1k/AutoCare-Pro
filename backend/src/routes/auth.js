@@ -267,15 +267,15 @@ async (req, res) => {
       success: true,
       message: 'User registered successfully',
       token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        isAdmin: false,
-        role: user.role,
-        createdAt: user.createdAt
-      }
+              user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          isAdmin: user.role === 'admin',
+          role: user.role,
+          createdAt: user.createdAt
+        }
     });
 
   } catch (error) {

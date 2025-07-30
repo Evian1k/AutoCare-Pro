@@ -1,5 +1,10 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://autocare-pro-2.onrender.com/api/v1';
 
+console.log('🔧 API Configuration:', {
+  VITE_API_URL: import.meta.env.VITE_API_URL,
+  API_BASE_URL: API_BASE_URL
+});
+
 class ApiService {
   constructor() {
     this.baseURL = API_BASE_URL;
@@ -24,9 +29,22 @@ class ApiService {
       config.headers.Authorization = `Bearer ${this.authToken}`;
     }
 
+    console.log('🌐 API Request:', {
+      url,
+      method: config.method || 'GET',
+      headers: config.headers,
+      body: config.body ? JSON.parse(config.body) : undefined
+    });
+
     try {
       const response = await fetch(url, config);
       const data = await response.json();
+
+      console.log('📡 API Response:', {
+        status: response.status,
+        ok: response.ok,
+        data
+      });
 
       if (!response.ok) {
         throw new Error(data.message || `HTTP error! status: ${response.status}`);
@@ -34,7 +52,7 @@ class ApiService {
 
       return data;
     } catch (error) {
-      console.error('API request failed:', error);
+      console.error('💥 API request failed:', error);
       throw error;
     }
   }

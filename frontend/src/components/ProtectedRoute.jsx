@@ -18,7 +18,12 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (adminOnly && !user.isAdmin) {
+  if (adminOnly && !user.isAdmin && user.role !== 'admin') {
+    console.log('🔒 Admin access denied:', { 
+      user: user.name, 
+      isAdmin: user.isAdmin, 
+      role: user.role 
+    });
     return <Navigate to="/dashboard" replace />;
   }
 

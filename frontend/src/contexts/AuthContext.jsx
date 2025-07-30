@@ -52,20 +52,34 @@ export const AuthProvider = ({ children }) => {
   const initializeAuth = async () => {
     try {
       const token = localStorage.getItem('token');
-      if (token) {
-        const userData = await validateToken(token);
-        if (userData) {
-          setUser(userData);
-          loadUserPermissions(userData);
-          startSessionTimer();
-          audioSystem.playSuccess();
-        } else {
-          localStorage.removeItem('token');
+      const storedUser = localStorage.getItem('autocare_user');
+      
+      if (token && storedUser) {
+        try {
+          const userData = JSON.parse(storedUser);
+          console.log('🔍 Restored user from localStorage:', userData);
+          
+          // Validate token with backend
+          const validatedUser = await validateToken(token);
+          if (validatedUser) {
+            setUser(validatedUser);
+            loadUserPermissions(validatedUser);
+            startSessionTimer();
+            audioSystem.playSuccess();
+          } else {
+            // Token invalid, clear storage
+            localStorage.removeItem('token');
+            localStorage.removeItem('autocare_user');
+          }
+        } catch (parseError) {
+          console.error('Error parsing stored user:', parseError);
+          localStorage.removeItem('autocare_user');
         }
       }
     } catch (error) {
       console.error('Auth initialization error:', error);
       localStorage.removeItem('token');
+      localStorage.removeItem('autocare_user');
     } finally {
       setLoading(false);
     }
@@ -138,14 +152,21 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       setError('');
+      console.log('🔐 Frontend login attempt:', { email, password: '***' });
+      
       const response = await apiService.request('/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password })
       });
 
+      console.log('📋 Login response:', response);
+
       if (response.success) {
         const { token, user: userData } = response;
+        console.log('✅ Login successful, user data:', userData);
+        
         localStorage.setItem('token', token);
+        localStorage.setItem('autocare_user', JSON.stringify(userData));
         setUser(userData);
         loadUserPermissions(userData);
         startSessionTimer();
@@ -153,11 +174,13 @@ export const AuthProvider = ({ children }) => {
         audioSystem.playVictoryFanfare();
         return { success: true };
       } else {
+        console.log('❌ Login failed:', response.message);
         setError(response.message || 'Login failed');
         audioSystem.playError();
         return { success: false, message: response.message };
       }
     } catch (error) {
+      console.error('💥 Login error:', error);
       setError('Login failed. Please try again.');
       audioSystem.playError();
       return { success: false, message: 'Login failed' };
@@ -195,6 +218,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = (message = 'Logged out successfully') => {
     localStorage.removeItem('token');
+    localStorage.removeItem('autocare_user');
     setUser(null);
     setPermissions({});
     if (sessionTimeout) {
@@ -251,7 +275,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   const isAdmin = () => {
-    return user?.role === 'admin';
+    const adminStatus = user?.role === 'admin' || user?.isAdmin;
+    console.log('🔍 Admin check:', { 
+      user: user?.name, 
+      role: user?.role, 
+      isAdmin: user?.isAdmin, 
+      adminStatus 
+    });
+    return adminStatus;
   };
 
   const isUser = () => {
