@@ -189,11 +189,15 @@ export default defineConfig({
 		addTransformIndexHtml
 	],
 	server: {
+		port: 5176,
+		host: '0.0.0.0',
 		cors: true,
 		headers: {
 			'Cross-Origin-Embedder-Policy': 'credentialless',
 		},
 		allowedHosts: true,
+		strictPort: true,
+		open: false
 	},
 	resolve: {
 		extensions: ['.jsx', '.js', '.tsx', '.ts', '.json'],
