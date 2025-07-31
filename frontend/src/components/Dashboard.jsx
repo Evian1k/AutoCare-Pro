@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import apiService from '../services/api';
 
 const Dashboard = ({ user }) => {
   const [stats, setStats] = useState({
@@ -17,27 +18,13 @@ const Dashboard = ({ user }) => {
 
   const fetchDashboardData = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      };
-
-      // Fetch all data in parallel
-      const [vehiclesRes, appointmentsRes, reportsRes, servicesRes] = await Promise.all([
-        fetch('/api/vehicles', { headers }),
-        fetch('/api/appointments', { headers }),
-        fetch('/api/incident-reports', { headers }),
-        fetch('/api/services', { headers })
+      // Fetch all data in parallel using API service
+      const [vehicles, appointments, reports, services] = await Promise.all([
+        apiService.getVehicles(),
+        apiService.getAppointments(),
+        apiService.getIncidentReports(),
+        apiService.getServices()
       ]);
-
-      if (vehiclesRes.ok && appointmentsRes.ok && reportsRes.ok && servicesRes.ok) {
-        const [vehicles, appointments, reports, services] = await Promise.all([
-          vehiclesRes.json(),
-          appointmentsRes.json(),
-          reportsRes.json(),
-          servicesRes.json()
-        ]);
 
         // Calculate statistics
         const vehicleStats = {
@@ -92,7 +79,6 @@ const Dashboard = ({ user }) => {
         ].sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, 5);
 
         setRecentActivities(activities);
-      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {

@@ -11,6 +11,7 @@ import Appointments from './components/Appointments';
 import Vehicles from './components/Vehicles';
 import Parts from './components/Parts';
 import Navbar from './components/Navbar';
+import ConnectionTest from './components/ConnectionTest';
 import './App.css';
 
 function App() {
@@ -122,6 +123,10 @@ function App() {
                 <Parts user={user} /> : 
                 <Navigate to="/login" />
               } 
+            />
+            <Route 
+              path="/connection-test" 
+              element={<ConnectionTest />} 
             />
             <Route 
               path="/" 

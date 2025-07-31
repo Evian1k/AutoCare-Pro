@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { vehiclesActions } from '../store/store';
+import apiService from '../services/api';
 
 const Vehicles = ({ user }) => {
   const dispatch = useDispatch();
@@ -29,19 +30,8 @@ const Vehicles = ({ user }) => {
   const fetchVehicles = async () => {
     dispatch(vehiclesActions.fetchVehiclesStart());
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/vehicles', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        dispatch(vehiclesActions.fetchVehiclesSuccess(data));
-      } else {
-        throw new Error('Failed to fetch vehicles');
-      }
+      const data = await apiService.getVehicles();
+      dispatch(vehiclesActions.fetchVehiclesSuccess(data));
     } catch (error) {
       dispatch(vehiclesActions.fetchVehiclesFailure(error.message));
     }
@@ -58,39 +48,20 @@ const Vehicles = ({ user }) => {
     e.preventDefault();
     
     try {
-      const token = localStorage.getItem('token');
-      const url = editingVehicle 
-        ? `/api/vehicles/${editingVehicle.id}`
-        : '/api/vehicles';
+      let data;
       
-      const method = editingVehicle ? 'PUT' : 'POST';
-      
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        
-        if (editingVehicle) {
-          dispatch(vehiclesActions.updateVehicle(data.vehicle));
-        } else {
-          dispatch(vehiclesActions.addVehicle(data.vehicle));
-        }
-        
-        resetForm();
-        fetchVehicles();
+      if (editingVehicle) {
+        data = await apiService.updateVehicle(editingVehicle.id, formData);
+        dispatch(vehiclesActions.updateVehicle(data.vehicle));
       } else {
-        const errorData = await response.json();
-        alert(errorData.message || 'Operation failed');
+        data = await apiService.createVehicle(formData);
+        dispatch(vehiclesActions.addVehicle(data.vehicle));
       }
+      
+      resetForm();
+      fetchVehicles();
     } catch (error) {
-      alert('Network error. Please try again.');
+      alert(error.message || 'Operation failed');
     }
   };
 

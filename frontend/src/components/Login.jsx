@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { authActions } from '../store/store';
+import apiService from '../services/api';
 
 const Login = ({ onLogin }) => {
   const [formData, setFormData] = useState({
@@ -25,30 +26,20 @@ const Login = ({ onLogin }) => {
     setLoading(true);
     setError('');
     
+    dispatch(authActions.loginStart());
+    
     try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        dispatch(authActions.loginSuccess({
-          user: data.user,
-          token: data.access_token,
-        }));
-        onLogin(data.user, data.access_token);
-      } else {
-        setError(data.message || 'Login failed');
-        dispatch(authActions.loginFailure(data.message || 'Login failed'));
-      }
+      const data = await apiService.login(formData);
+      
+      dispatch(authActions.loginSuccess({
+        user: data.user,
+        token: data.access_token,
+      }));
+      onLogin(data.user, data.access_token);
     } catch (error) {
-      setError('Network error. Please try again.');
-      dispatch(authActions.loginFailure('Network error'));
+      const errorMessage = error.message || 'Login failed';
+      setError(errorMessage);
+      dispatch(authActions.loginFailure(errorMessage));
     } finally {
       setLoading(false);
     }
